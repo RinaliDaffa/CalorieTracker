@@ -1,99 +1,105 @@
 // ============================================
 // NutriSnap — Service Worker
-// Offline caching and cache management
+// Network-first for code so deployed updates reach installed devices.
+// Cache-first only for immutable assets (icons, fonts).
 // ============================================
 
-const CACHE_NAME = 'nutrisnap-v1';
+// Bump VERSION on every deploy. This is what evicts the previous cache.
+const VERSION = 'v2.0.0';
+const CACHE_NAME = `nutrisnap-${VERSION}`;
 
-const ASSETS_TO_CACHE = [
+// Precached so the app opens offline. Deliberately NOT atomic:
+// a single missing file must not prevent the worker from installing.
+const PRECACHE = [
   './',
   './index.html',
+  './manifest.json',
   './css/index.css',
   './css/components.css',
   './css/animations.css',
-  './js/app.js',
-  './js/config.js',
-  './js/utils.js',
-  './js/db.js',
-  './js/gemini.js',
-  './js/camera.js',
-  './js/charts.js',
-  './js/ui.js',
-  './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png'
 ];
 
-// Install — cache app shell
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('Caching app shell...');
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
-  );
-  self.skipWaiting();
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    // allSettled, not addAll: addAll is atomic and one 404 rejects the
+    // entire install, which is exactly how the previous version broke.
+    const results = await Promise.allSettled(
+      PRECACHE.map((url) => cache.add(url))
+    );
+    const failed = results.filter((r) => r.status === 'rejected').length;
+    if (failed > 0) {
+      console.warn(`SW: ${failed} precache entries failed; install continues`);
+    }
+    await self.skipWaiting();
+  })());
 });
 
-// Activate — clean old caches
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
-      );
-    })
-  );
-  self.clients.claim();
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(
+      keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
+    );
+    await self.clients.claim();
+  })());
 });
 
-// Fetch — cache-first for app assets, network-first for API
-self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
-
-  // Skip cross-origin requests except Google Fonts
-  if (url.origin !== self.location.origin &&
-      !url.hostname.includes('fonts.googleapis.com') &&
-      !url.hostname.includes('fonts.gstatic.com')) {
-    return;
+async function cacheFirst(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(request);
+  if (cached) return cached;
+  try {
+    const response = await fetch(request);
+    if (response && response.ok) cache.put(request, response.clone());
+    return response;
+  } catch (err) {
+    return new Response('Offline', { status: 503, statusText: 'Offline' });
   }
+}
 
-  // Google Fonts — cache first
+async function networkFirst(request) {
+  const cache = await caches.open(CACHE_NAME);
+  try {
+    const response = await fetch(request);
+    if (response && response.ok) cache.put(request, response.clone());
+    return response;
+  } catch (err) {
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    if (request.mode === 'navigate') {
+      const shell = await cache.match('./index.html');
+      if (shell) return shell;
+    }
+    return new Response('Offline', { status: 503, statusText: 'Offline' });
+  }
+}
+
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  if (request.method !== 'GET') return;
+
+  const url = new URL(request.url);
+
+  // Google Fonts are immutable and versioned — cache-first.
   if (url.hostname.includes('fonts.googleapis.com') ||
       url.hostname.includes('fonts.gstatic.com')) {
-    event.respondWith(
-      caches.match(event.request).then((cached) => {
-        return cached || fetch(event.request).then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          return response;
-        });
-      })
-    );
+    event.respondWith(cacheFirst(request));
     return;
   }
 
-  // App assets — cache first, fallback to network
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
+  // Any other cross-origin request (notably the Gemini API) is left
+  // to the browser. Never cache API responses.
+  if (url.origin !== self.location.origin) return;
 
-      return fetch(event.request).then((response) => {
-        // Only cache successful GET requests
-        if (response.ok && event.request.method === 'GET') {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-        }
-        return response;
-      }).catch(() => {
-        // Offline fallback
-        if (event.request.destination === 'document') {
-          return caches.match('./index.html');
-        }
-        return new Response('Offline', { status: 503 });
-      });
-    })
-  );
+  // Icons are immutable — cache-first.
+  if (url.pathname.includes('/icons/')) {
+    event.respondWith(cacheFirst(request));
+    return;
+  }
+
+  // HTML, JS, CSS, manifest — network-first so updates land.
+  event.respondWith(networkFirst(request));
 });

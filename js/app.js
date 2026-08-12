@@ -16,7 +16,6 @@ import { renderDashboard, renderScanView, renderHistoryView, renderChatView,
          setupMealTypeSelector, getSelectedMealType,
          appendChatMessage, showChatTyping, removeChatTyping } from './ui.js';
 import { getToday, formatDate, sumNutrition, blobToBase64 } from './utils.js';
-import { CONFIG } from './config.js';
 
 // ── App State ──
 const state = {
@@ -45,18 +44,10 @@ async function init() {
     const theme = state.settings.theme || 'dark';
     document.documentElement.setAttribute('data-theme', theme);
 
-    // Set API key — prefer config.js, then DB setting
-    const configKey = CONFIG.GEMINI_API_KEY && CONFIG.GEMINI_API_KEY !== 'YOUR_API_KEY_HERE'
-      ? CONFIG.GEMINI_API_KEY : null;
-    const apiKeyToUse = configKey || state.settings.apiKey;
-
-    if (apiKeyToUse) {
-      setApiKey(apiKeyToUse);
-      state.settings.apiKey = apiKeyToUse;
-      // Persist config key to DB if not already there
-      if (configKey && !state.settings.apiKey) {
-        await saveSetting('apiKey', configKey);
-      }
+    // API key comes from device storage only. It is never bundled with
+    // the app, because a static site cannot hold a secret.
+    if (state.settings.apiKey) {
+      setApiKey(state.settings.apiKey);
       hideOnboarding();
       await renderCurrentView();
     } else {
@@ -702,13 +693,21 @@ async function removeFavorite(favId) {
 
 // ── Service Worker ──
 function registerServiceWorker() {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').then((reg) => {
-      console.log('Service worker registered:', reg.scope);
-    }).catch((err) => {
-      console.warn('Service worker registration failed:', err);
-    });
-  }
+  if (!('serviceWorker' in navigator)) return;
+
+  // When a new service worker takes control, reload once so the user is
+  // running the new code. Without this the page keeps the old modules
+  // until it is manually closed and reopened.
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
+
+  navigator.serviceWorker.register('./sw.js')
+    .then((reg) => console.log('Service worker registered:', reg.scope))
+    .catch((err) => console.error('Service worker registration failed:', err));
 }
 
 // ── Expose to Global (for onclick handlers in HTML) ──
