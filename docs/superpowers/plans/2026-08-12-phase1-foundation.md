@@ -78,13 +78,15 @@ Spec §5 places HTML escaping in `ui/render.js`. Because escaping is a pure, sec
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/",
+    "test": "node --test",
     "serve": "npx -y serve . -l 3111"
   }
 }
 ```
 
 `"type": "module"` lets Node load the project's ES modules directly. Browsers ignore this file entirely, so it cannot affect the running app.
+
+`node --test` takes no path argument. Passing a directory (`node --test tests/`) makes Node treat the directory itself as a test file and fail. With no argument it uses its default discovery patterns, which match `**/*.test.js` at any depth and exclude `node_modules` — so `tests/smoke.test.js`, `tests/core/*.test.js` and `tests/config/*.test.js` are all found.
 
 - [ ] **Step 2: Write a smoke test that proves the runner works**
 
