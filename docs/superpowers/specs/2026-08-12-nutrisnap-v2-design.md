@@ -190,7 +190,9 @@ Nothing built later reaches the phone until D1 is fixed. This phase ships first 
 5. Model fallback chain, configurable in settings (**D5**)
 6. Accessible names on nav buttons; restore pinch-zoom (**D7, D8**)
 7. Deduplicate image compression into `services/camera.js` (**D10**)
-8. Module split per section 5, with `core/` unit tests
+8. Create `core/` and `config/` with the pure modules this phase needs, plus the unit-test harness
+
+**Amended during planning:** the full `views/` split of `ui.js` and `app.js` moves to **Phase 2**. Splitting an 886-line file with no regression tests, in the same phase as four critical fixes, risks shipping a broken app while claiming the defects are fixed. Phase 2 modifies those files anyway (profile view, progress view), which is the cheaper and safer moment. The directory structure and test harness are still established here.
 
 ### API key handling
 
