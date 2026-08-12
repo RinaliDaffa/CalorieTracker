@@ -63,7 +63,12 @@ async function cacheFirst(request) {
 async function networkFirst(request) {
   const cache = await caches.open(CACHE_NAME);
   try {
-    const response = await fetch(request);
+    // cache: 'reload' bypasses the browser's own HTTP cache. Without it,
+    // fetch() can be satisfied from disk cache when the host sends a
+    // long max-age (GitHub Pages and Cloudflare Pages both do), which
+    // would reintroduce D1 staleness in production even though the
+    // service-worker strategy is network-first.
+    const response = await fetch(request, { cache: 'reload' });
     if (response && response.ok) cache.put(request, response.clone());
     return response;
   } catch (err) {
