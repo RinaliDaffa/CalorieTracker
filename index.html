@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
   <!-- SEO & Meta -->
   <title>NutriSnap — AI Calorie Tracker</title>
@@ -68,25 +68,25 @@
     </main>
 
     <!-- ── Bottom Navigation ── -->
-    <nav class="bottom-nav">
-      <button class="nav-item active" data-tab="dashboard" id="nav-dashboard">
-        <span class="nav-icon">🏠</span>
+    <nav class="bottom-nav" aria-label="Main navigation">
+      <button class="nav-item active" data-tab="dashboard" id="nav-dashboard" aria-label="Home">
+        <span class="nav-icon" aria-hidden="true">🏠</span>
         <span>Home</span>
       </button>
-      <button class="nav-item" data-tab="history" id="nav-history">
-        <span class="nav-icon">📅</span>
+      <button class="nav-item" data-tab="history" id="nav-history" aria-label="History">
+        <span class="nav-icon" aria-hidden="true">📅</span>
         <span>History</span>
       </button>
-      <button class="nav-item nav-scan" data-tab="scan" id="nav-scan">
-        <span class="nav-icon">📸</span>
+      <button class="nav-item nav-scan" data-tab="scan" id="nav-scan" aria-label="Scan food">
+        <span class="nav-icon" aria-hidden="true">📸</span>
         <span></span>
       </button>
-      <button class="nav-item" data-tab="chat" id="nav-chat">
-        <span class="nav-icon">💬</span>
+      <button class="nav-item" data-tab="chat" id="nav-chat" aria-label="AI chat">
+        <span class="nav-icon" aria-hidden="true">💬</span>
         <span>AI Chat</span>
       </button>
-      <button class="nav-item" data-tab="settings" id="nav-settings">
-        <span class="nav-icon">⚙️</span>
+      <button class="nav-item" data-tab="settings" id="nav-settings" aria-label="Settings">
+        <span class="nav-icon" aria-hidden="true">⚙️</span>
         <span>Settings</span>
       </button>
     </nav>
