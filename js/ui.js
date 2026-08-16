@@ -20,9 +20,14 @@ export function showToast(message, type = 'info', duration = 3000) {
 
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
+  // escapeHtml is not optional here: toast messages carry model-derived
+  // text. validateAnalysis interpolates the model's own item.name into its
+  // error strings, gemini.js throws those as err.message, and app.js hands
+  // err.message straight to showToast — so a food name photographed off an
+  // adversarial label would otherwise reach innerHTML as live markup.
   toast.innerHTML = `
     <span>${type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ'}</span>
-    <span>${message}</span>
+    <span>${escapeHtml(message)}</span>
   `;
 
   container.appendChild(toast);
