@@ -1366,10 +1366,12 @@ Expected: all tests pass, zero failures.
 - [ ] **Step 2: Confirm no secret is tracked**
 
 ```bash
-git grep --cached -l "AQ.Ab8RN6"
+git grep --cached -lE "AQ\.[A-Za-z0-9_-]{20,}"
 ```
 
 Expected: **no output**. Any output is a blocker — stop and remove the file from the index.
+
+This searches for the *structural* pattern of a Gemini API key (the `AQ.` prefix format, followed by a long token) rather than a fragment of any one specific key. An earlier version of this check embedded a 9-character prefix of the user's actual key as the search pattern — itself a small secret leak into a tracked file. Never hardcode a fragment of a real credential into a check meant to detect credentials.
 
 Note the flag order: `--cached` must precede the pattern, or git errors out and a shell fallback can make a failure look like a pass.
 
