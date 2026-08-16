@@ -680,6 +680,18 @@ test('clamps healthScore into 1-10', () => {
   bad.healthScore = 99;
   assert.equal(validateAnalysis(bad).value.healthScore, 10);
 });
+
+test('warns when one item of several is dropped, rather than losing it silently', () => {
+  const mixed = validAnalysis();
+  mixed.foodItems.push({
+    name: 'Phantom Item', servingSize: '1',
+    calories: 99999, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0
+  });
+  const result = validateAnalysis(mixed);
+  assert.equal(result.ok, true, 'the still-valid item must still save');
+  assert.equal(result.value.foodItems.length, 1);
+  assert.ok(result.warnings.some(w => w.includes('1 item')));
+});
 ```
 
 - [ ] **Step 2: Run to confirm failure**
@@ -808,6 +820,17 @@ export function validateAnalysis(raw) {
   if (foodItems.length === 0) {
     if (errors.length === 0) errors.push('No usable food items were returned.');
     return { ok: false, errors, warnings };
+  }
+
+  // Some items may have been dropped above (bad name, unreadable macro,
+  // out-of-range calories) while others in the same meal were fine. That
+  // must surface as a warning, not vanish silently - a dropped item is a
+  // silent undercount, which is worse than the mismatch warning below.
+  if (foodItems.length < raw.foodItems.length) {
+    const droppedCount = raw.foodItems.length - foodItems.length;
+    warnings.push(
+      `${droppedCount} item(s) could not be read and were left out of this meal.`
+    );
   }
 
   // Totals are recomputed rather than trusted: the model frequently
