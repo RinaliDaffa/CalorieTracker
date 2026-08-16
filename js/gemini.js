@@ -3,6 +3,8 @@
    Food analysis and nutrition chat
    ============================================ */
 
+import { validateAnalysis } from './core/nutrition.js';
+
 let apiKey = null;
 
 // ── Configure API Key ──
@@ -142,11 +144,20 @@ Be as accurate as possible with portion estimates. If uncertain, provide your be
 
   const result = await callGemini(contents, { responseSchema: schema });
 
+  let parsed;
   try {
-    return JSON.parse(result);
+    parsed = JSON.parse(result);
   } catch (e) {
     throw new Error('Failed to parse AI response. Please try again.');
   }
+
+  const check = validateAnalysis(parsed);
+  if (!check.ok) {
+    const err = new Error(check.errors.join(' '));
+    err.code = 'IMPLAUSIBLE_ANALYSIS';
+    throw err;
+  }
+  return { ...check.value, warnings: check.warnings };
 }
 
 // ── Analyze Food by Text Description ──
@@ -215,11 +226,20 @@ Use typical portion sizes and be reasonably accurate.`
 
   const result = await callGemini(contents, { responseSchema: schema });
 
+  let parsed;
   try {
-    return JSON.parse(result);
+    parsed = JSON.parse(result);
   } catch (e) {
     throw new Error('Failed to parse AI response. Please try again.');
   }
+
+  const check = validateAnalysis(parsed);
+  if (!check.ok) {
+    const err = new Error(check.errors.join(' '));
+    err.code = 'IMPLAUSIBLE_ANALYSIS';
+    throw err;
+  }
+  return { ...check.value, warnings: check.warnings };
 }
 
 // ── Chat with AI ──
