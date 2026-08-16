@@ -102,3 +102,15 @@ test('clamps healthScore into 1-10', () => {
   bad.healthScore = 99;
   assert.equal(validateAnalysis(bad).value.healthScore, 10);
 });
+
+test('warns when one item of several is dropped, rather than losing it silently', () => {
+  const mixed = validAnalysis();
+  mixed.foodItems.push({
+    name: 'Phantom Item', servingSize: '1',
+    calories: 99999, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0
+  });
+  const result = validateAnalysis(mixed);
+  assert.equal(result.ok, true, 'the still-valid item must still save');
+  assert.equal(result.value.foodItems.length, 1);
+  assert.ok(result.warnings.some(w => w.includes('1 item')));
+});

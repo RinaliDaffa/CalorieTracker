@@ -115,6 +115,17 @@ export function validateAnalysis(raw) {
     return { ok: false, errors, warnings };
   }
 
+  // Some items may have been dropped above (bad name, unreadable macro,
+  // out-of-range calories) while others in the same meal were fine. That
+  // must surface as a warning, not vanish silently - a dropped item is a
+  // silent undercount, which is worse than the mismatch warning below.
+  if (foodItems.length < raw.foodItems.length) {
+    const droppedCount = raw.foodItems.length - foodItems.length;
+    warnings.push(
+      `${droppedCount} item(s) could not be read and were left out of this meal.`
+    );
+  }
+
   // Totals are recomputed rather than trusted: the model frequently
   // returns a sum that does not match its own items.
   const totalNutrition = { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0 };
