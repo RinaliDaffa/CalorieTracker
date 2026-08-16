@@ -4,8 +4,20 @@
    ============================================ */
 
 import { validateAnalysis } from './core/nutrition.js';
+import { MODEL_CANDIDATES, isModelUnavailableError, nextModel } from './config/models.js';
 
 let apiKey = null;
+
+// The model currently known to work. Persisted by app.js once resolved.
+let activeModel = MODEL_CANDIDATES[0];
+
+export function setModel(model) {
+  if (model) activeModel = model;
+}
+
+export function getModel() {
+  return activeModel;
+}
 
 // ── Configure API Key ──
 export function setApiKey(key) {
@@ -22,10 +34,6 @@ async function callGemini(contents, config = {}) {
     throw new Error('API key not configured. Please add your Gemini API key in Settings.');
   }
 
-  const model = 'gemini-2.0-flash';
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
-  // Separate generation config from custom properties
   const { responseSchema, ...genConfig } = config;
 
   const body = {
@@ -37,39 +45,57 @@ async function callGemini(contents, config = {}) {
     }
   };
 
-  // Add response schema for structured output if provided
   if (responseSchema) {
     body.generationConfig.responseMimeType = 'application/json';
     body.generationConfig.responseSchema = responseSchema;
   }
 
-  console.log('Calling Gemini API...');
+  let model = activeModel;
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
+  // Walk the candidate list until one answers. Only a "model unusable"
+  // error advances the chain; rate limits and auth errors stop it.
+  while (model) {
+    const url =
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-  if (!response.ok) {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) throw new Error('No response from AI. Please try again.');
+      activeModel = model;   // remember what worked
+      return text;
+    }
+
     const err = await response.json().catch(() => ({}));
+    const message = err.error?.message || '';
+
     if (response.status === 429) {
       throw new Error('Rate limit reached. Please wait a moment and try again.');
     }
-    if (response.status === 400 && err.error?.message?.includes('API_KEY')) {
+    if (response.status === 400 && message.includes('API_KEY')) {
       throw new Error('Invalid API key. Please check your key in Settings.');
     }
-    throw new Error(err.error?.message || `API error: ${response.status}`);
+
+    if (isModelUnavailableError(response.status, message)) {
+      const fallback = nextModel(model);
+      if (fallback) {
+        console.warn(`Model ${model} unavailable, falling back to ${fallback}`);
+        model = fallback;
+        continue;
+      }
+      throw new Error('No available AI model. Google may have changed their model names.');
+    }
+
+    throw new Error(message || `API error: ${response.status}`);
   }
 
-  const data = await response.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-  if (!text) {
-    throw new Error('No response from AI. Please try again.');
-  }
-
-  return text;
+  throw new Error('No available AI model.');
 }
 
 // ── Analyze Food Photo ──
