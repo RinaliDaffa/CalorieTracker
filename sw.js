@@ -10,6 +10,10 @@ const CACHE_NAME = `nutrisnap-${VERSION}`;
 
 // Precached so the app opens offline. Deliberately NOT atomic:
 // a single missing file must not prevent the worker from installing.
+// The JS modules are listed explicitly: the app is ES modules loaded from
+// index.html, and nothing else pulls them into the cache at install time.
+// (They used to arrive only as a side effect of the unconditional
+// first-install reload, which no longer happens — see registerServiceWorker.)
 const PRECACHE = [
   './',
   './index.html',
@@ -17,6 +21,16 @@ const PRECACHE = [
   './css/index.css',
   './css/components.css',
   './css/animations.css',
+  './js/app.js',
+  './js/ui.js',
+  './js/db.js',
+  './js/gemini.js',
+  './js/camera.js',
+  './js/charts.js',
+  './js/utils.js',
+  './js/core/escape.js',
+  './js/core/nutrition.js',
+  './js/config/models.js',
   './icons/icon-192.png',
   './icons/icon-512.png'
 ];
@@ -26,8 +40,12 @@ self.addEventListener('install', (event) => {
     const cache = await caches.open(CACHE_NAME);
     // allSettled, not addAll: addAll is atomic and one 404 rejects the
     // entire install, which is exactly how the previous version broke.
+    // cache: 'reload' for the same reason networkFirst uses it — cache.add
+    // is an ordinary fetch, so without it a deploy can seed the new
+    // versioned cache from the browser's stale HTTP cache, defeating the
+    // update mechanism at install time instead of at runtime.
     const results = await Promise.allSettled(
-      PRECACHE.map((url) => cache.add(url))
+      PRECACHE.map((url) => cache.add(new Request(url, { cache: 'reload' })))
     );
     const failed = results.filter((r) => r.status === 'rejected').length;
     if (failed > 0) {

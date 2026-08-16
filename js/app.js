@@ -698,9 +698,16 @@ function registerServiceWorker() {
   // When a new service worker takes control, reload once so the user is
   // running the new code. Without this the page keeps the old modules
   // until it is manually closed and reopened.
+  //
+  // Only for genuine updates, though. On a first-ever install clients.claim()
+  // also fires controllerchange even though there was no controller to
+  // replace, and reloading there would race onboarding: the key is saved
+  // only after validateApiKey's network round-trip, so a reload landing in
+  // that window drops the key the user just typed.
+  const hadController = !!navigator.serviceWorker.controller;
   let refreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (refreshing) return;
+    if (!hadController || refreshing) return;
     refreshing = true;
     window.location.reload();
   });
