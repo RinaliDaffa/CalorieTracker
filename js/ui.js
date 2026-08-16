@@ -9,6 +9,7 @@ import {
   MACRO_COLORS, MACRO_UNITS, sumNutrition, getToday
 } from './utils.js';
 import { drawProgressRing, drawProgressBar, drawWeeklyChart, getHealthScoreEmoji, getHealthScoreLabel } from './charts.js';
+import { escapeHtml, formatChatContent } from './core/escape.js';
 
 // ── Toast Notifications ──
 let toastTimeout = null;
@@ -149,7 +150,7 @@ function renderMiniMacro(label, current, goal, color) {
 function renderMealCard(meal) {
   const icon = MEAL_ICONS[meal.mealType] || '🍽️';
   const label = MEAL_LABELS[meal.mealType] || meal.mealType;
-  const items = (meal.foodItems || []).map(f => f.name).join(', ');
+  const items = (meal.foodItems || []).map(f => escapeHtml(f.name)).join(', ');
 
   return `
     <div class="meal-card" data-meal-id="${meal.id}" onclick="window.app.showMealDetail('${meal.id}')">
@@ -263,14 +264,14 @@ export function renderScanResults(analysisData) {
             <span style="font-size: var(--fs-xs); color: var(--text-tertiary);">${label}</span>
           </div>
         </div>
-        <p style="font-size: var(--fs-sm); color: var(--text-secondary); margin-bottom: var(--space-md);">${mealDescription || ''}</p>
+        <p style="font-size: var(--fs-sm); color: var(--text-secondary); margin-bottom: var(--space-md);">${escapeHtml(mealDescription || '')}</p>
 
         <!-- Food Items -->
         ${foodItems.map(item => `
           <div class="food-item-row">
             <div>
-              <div class="food-item-name">${item.name}</div>
-              <div class="food-item-serving">${item.servingSize || ''}</div>
+              <div class="food-item-name">${escapeHtml(item.name)}</div>
+              <div class="food-item-serving">${escapeHtml(item.servingSize || '')}</div>
             </div>
             <div class="food-item-cals">${formatNumber(item.calories)} kcal</div>
           </div>
@@ -313,7 +314,7 @@ export function renderScanResults(analysisData) {
         <div class="glass-card no-press" style="border-left: 3px solid var(--accent-primary);">
           <div style="display: flex; gap: var(--space-sm); align-items: start;">
             <span style="font-size: 20px;">💡</span>
-            <p style="font-size: var(--fs-sm); color: var(--text-secondary); line-height: var(--lh-relaxed);">${aiTips}</p>
+            <p style="font-size: var(--fs-sm); color: var(--text-secondary); line-height: var(--lh-relaxed);">${escapeHtml(aiTips)}</p>
           </div>
         </div>
       ` : ''}
@@ -523,15 +524,6 @@ export function renderChatView(messages) {
   if (chatMessages) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
-}
-
-function formatChatContent(content) {
-  // Simple markdown-like formatting
-  return content
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/\n/g, '<br>')
-    .replace(/^- (.*)/gm, '• $1');
 }
 
 export function appendChatMessage(message) {
@@ -759,8 +751,8 @@ export function showMealDetailModal(meal) {
           ${items.map(item => `
             <div class="food-item-row">
               <div>
-                <div class="food-item-name">${item.name}</div>
-                <div class="food-item-serving">${item.servingSize || ''}</div>
+                <div class="food-item-name">${escapeHtml(item.name)}</div>
+                <div class="food-item-serving">${escapeHtml(item.servingSize || '')}</div>
               </div>
               <div class="food-item-cals">${formatNumber(item.calories)} kcal</div>
             </div>
@@ -783,7 +775,7 @@ export function showMealDetailModal(meal) {
       <!-- AI Tips -->
       ${meal.aiTips ? `
         <div style="border-left: 3px solid var(--accent-primary); padding-left: var(--space-md);">
-          <p style="font-size: var(--fs-sm); color: var(--text-secondary);">💡 ${meal.aiTips}</p>
+          <p style="font-size: var(--fs-sm); color: var(--text-secondary);">💡 ${escapeHtml(meal.aiTips)}</p>
         </div>
       ` : ''}
 
@@ -809,7 +801,7 @@ export function showFavoritesModal(favorites, onSelect) {
       ${favorites.map(fav => `
         <div class="favorite-card">
           <div class="favorite-info">
-            <div class="favorite-name">${fav.name}</div>
+            <div class="favorite-name">${escapeHtml(fav.name)}</div>
             <div class="favorite-macros">${formatNumber(fav.nutrition?.calories)} kcal · ${formatNumber(fav.nutrition?.protein)}g P · ${formatNumber(fav.nutrition?.carbs)}g C · ${formatNumber(fav.nutrition?.fat)}g F</div>
           </div>
           <div class="favorite-actions">
