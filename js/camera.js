@@ -3,7 +3,7 @@
    Photo capture and image handling
    ============================================ */
 
-import { compressImage, blobToBase64 } from './utils.js';
+import { blobToBase64 } from './utils.js';
 
 let stream = null;
 let videoElement = null;
@@ -59,7 +59,7 @@ export async function capturePhoto() {
       // Compress if too large (> 1MB)
       let finalBlob = blob;
       if (blob.size > 1024 * 1024) {
-        finalBlob = await compressImageBlob(blob, 1024, 0.7);
+        finalBlob = await compressImage(blob, 1024, 0.7);
       }
       const base64 = await blobToBase64(finalBlob);
       resolve({ blob: finalBlob, base64 });
@@ -67,21 +67,15 @@ export async function capturePhoto() {
   });
 }
 
-// ── Process File from Gallery ──
-export async function processImageFile(file) {
-  // Compress the image
-  const compressedBlob = await compressImage(file, 1024, 0.75);
-  const base64 = await blobToBase64(compressedBlob);
-  return { blob: compressedBlob, base64 };
-}
-
-// ── Compress a Blob ──
-function compressImageBlob(blob, maxWidth = 1024, quality = 0.7) {
-  return new Promise((resolve) => {
+// ── Compress an image (accepts a File or a Blob — a File is a Blob) ──
+export function compressImage(fileOrBlob, maxWidth = 1024, quality = 0.75) {
+  return new Promise((resolve, reject) => {
     const img = new Image();
-    const url = URL.createObjectURL(blob);
+    const url = URL.createObjectURL(fileOrBlob);
+
     img.onload = () => {
       URL.revokeObjectURL(url);
+
       const canvas = document.createElement('canvas');
       let { width, height } = img;
 
@@ -92,17 +86,31 @@ function compressImageBlob(blob, maxWidth = 1024, quality = 0.7) {
 
       canvas.width = width;
       canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
 
+      // Re-encoding through canvas also discards EXIF, which is how
+      // GPS coordinates are kept out of anything sent to the API.
       canvas.toBlob(
-        (resultBlob) => resolve(resultBlob),
+        (blob) => blob ? resolve(blob) : reject(new Error('Image compression failed')),
         'image/jpeg',
         quality
       );
     };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Could not read that image'));
+    };
+
     img.src = url;
   });
+}
+
+// ── Process a file chosen from the gallery ──
+export async function processImageFile(file) {
+  const blob = await compressImage(file, 1024, 0.75);
+  const base64 = await blobToBase64(blob);
+  return { blob, base64 };
 }
 
 // ── Create object URL for display ──
