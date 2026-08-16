@@ -322,6 +322,7 @@ function setupScanHandlers() {
       state.currentAnalysis = result;
       renderScanResults(result);
       setupResultHandlers();
+      showAnalysisWarnings(result);
     } catch (err) {
       showToast(err.message || 'Analysis failed', 'error');
     } finally {
@@ -360,6 +361,7 @@ async function analyzeCurrentPhoto() {
     state.currentAnalysis = result;
     renderScanResults(result);
     setupResultHandlers();
+    showAnalysisWarnings(result);
   } catch (err) {
     showToast(err.message || 'Failed to analyze food', 'error');
   } finally {
@@ -371,6 +373,17 @@ async function analyzeCurrentPhoto() {
 function showAnalysisLoading(show) {
   const loader = document.getElementById('analysis-loading');
   if (loader) loader.style.display = show ? 'block' : 'none';
+}
+
+// validateAnalysis flags problems that are not bad enough to reject the
+// meal — a dropped item, or stated calories that disagree with the macros.
+// Informational only: the result is already on screen and the save is still
+// one tap away. The strings embed the model's own item names, so they go out
+// through showToast, which escapes.
+function showAnalysisWarnings(result) {
+  if (result?.warnings?.length) {
+    showToast(result.warnings.join(' '), 'info', 5000);
+  }
 }
 
 function setupResultHandlers() {
