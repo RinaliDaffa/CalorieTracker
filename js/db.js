@@ -343,7 +343,10 @@ export async function getStorageEstimate() {
 // ── Initialize Database ──
 export async function initDB() {
   await openDB();
-  await requestPersistentStorage();
+  // Durable storage is NOT requested here. At DB-open time the browser has
+  // no engagement to judge and denies it almost every time — and a denial
+  // is not retried, so the app spent its one ask before there was anything
+  // worth keeping. app.js asks when the key is saved instead.
 
   // Set default goals if none exist
   const goals = await dbGet('goals', 'current');

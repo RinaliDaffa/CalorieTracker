@@ -28,18 +28,29 @@ A completely free, AI-powered calorie tracker that runs as a Progressive Web App
 
 ### 2. Run the App
 
-The simplest way to run locally:
-
 ```bash
 cd CalorieTracker
-npx -y serve .
+npm run serve
 ```
 
-Then open `http://localhost:3000` in your browser.
+Then open `http://localhost:3111` in your browser.
 
-### 3. Enter Your API Key
+**Always use this command, not a bare `npx serve .`.** Browser storage is
+per-origin, and `localhost:3000` and `localhost:3111` are different origins
+with separate databases. Serving on a different port than last time looks
+exactly like the app forgetting your key and your meals — they are still
+there, just under the other address.
 
-When the app opens, paste your Gemini API key and click "Get Started".
+### 3. Enter Your API Key — once
+
+Paste your Gemini API key and click "Get Started". It is stored on the device
+and read back on every launch; you should never be asked for it twice on the
+same address.
+
+If you *are* asked again, one of two things happened: you opened the app on a
+different origin (see above), or the browser reclaimed the storage. Settings →
+Storage Used shows whether the browser has promised to keep it — installing to
+the Home Screen is what earns that promise on iOS.
 
 ## 📱 Install on iPhone
 

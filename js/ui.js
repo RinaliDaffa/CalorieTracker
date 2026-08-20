@@ -677,7 +677,7 @@ export function renderSettingsView(settings, goals) {
           <div class="settings-item" style="border: none;">
             <div>
               <div class="settings-item-label">Storage Used</div>
-              <div class="settings-item-desc">Photos and meal history on this device</div>
+              <div class="settings-item-desc">Photos, meals and your API key on this device. "Evictable" means iOS may clear it after about a week unused — install to the Home Screen to keep it.</div>
             </div>
             <span id="storage-estimate" style="font-size: var(--fs-sm); color: var(--text-tertiary);">Checking...</span>
           </div>

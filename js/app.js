@@ -7,7 +7,7 @@ import { initDB, saveMeal, getMealsByDate, getAllMeals, getMeal, deleteMeal as d
          getGoals, saveGoals, getSetting, saveSetting, getAllSettings,
          saveFavorite, getFavorites, deleteFavorite,
          saveChatMessage, getChatHistory, clearChatHistory,
-         exportToCSV, getMealPhoto } from './db.js';
+         exportToCSV, getMealPhoto, requestPersistentStorage } from './db.js';
 import { setApiKey, analyzeFood, analyzeFoodByText, chatWithAI, validateApiKey, setModel, getModel } from './gemini.js';
 import { startCamera, stopCamera, capturePhoto, processImageFile, isCameraAvailable } from './camera.js';
 import { renderDashboard, renderScanView, renderHistoryView, renderChatView,
@@ -69,6 +69,22 @@ async function init() {
 }
 
 // ── Onboarding ──
+// The key lives on this device and nowhere else, so losing the storage means
+// typing it again. This is the moment to ask the browser to keep the origin's
+// data: it happens inside a click, and it is the first point at which there is
+// anything worth keeping. iOS clears ordinary site data after about a week of
+// disuse; durable storage is what exempts an installed PWA from that.
+async function acceptApiKey(key) {
+  await saveSetting('apiKey', key);
+  state.settings.apiKey = key;
+  setApiKey(key);
+  try {
+    await requestPersistentStorage();
+  } catch (err) {
+    console.warn('Could not request persistent storage:', err);
+  }
+}
+
 function showOnboarding() {
   const overlay = document.getElementById('onboarding');
   overlay.classList.remove('hidden');
@@ -93,18 +109,14 @@ function showOnboarding() {
     try {
       const valid = await validateApiKey(key);
       if (valid) {
-        await saveSetting('apiKey', key);
-        state.settings.apiKey = key;
-        setApiKey(key);
+        await acceptApiKey(key);
         showToast('API key saved! Welcome to NutriSnap 🎉', 'success');
         hideOnboarding();
         await renderCurrentView();
       } else {
         // Still save the key — user can try it and change later in settings
         console.warn('API key validation failed, saving anyway');
-        await saveSetting('apiKey', key);
-        state.settings.apiKey = key;
-        setApiKey(key);
+        await acceptApiKey(key);
         showToast('Key saved, but validation failed — check your key in Settings if AI features don\'t work', 'info', 5000);
         hideOnboarding();
         await renderCurrentView();
@@ -112,9 +124,7 @@ function showOnboarding() {
     } catch (err) {
       console.error('Onboarding error:', err);
       // Save anyway so user can get into the app
-      await saveSetting('apiKey', key);
-      state.settings.apiKey = key;
-      setApiKey(key);
+      await acceptApiKey(key);
       showToast('Key saved! If AI features don\'t work, check your key in Settings.', 'info', 5000);
       hideOnboarding();
       await renderCurrentView();
@@ -603,9 +613,14 @@ async function showStorageEstimate() {
   }
   try {
     const { usage, quota } = await navigator.storage.estimate();
-    el.textContent = quota
-      ? `${formatBytes(usage)} of ${formatBytes(quota)}`
-      : formatBytes(usage);
+    const size = quota ? `${formatBytes(usage)} of ${formatBytes(quota)}` : formatBytes(usage);
+    // Whether the browser has promised to keep this data matters more than
+    // the number: without it, iOS reclaims the origin after about a week of
+    // disuse and the API key goes with it.
+    const durable = navigator.storage.persisted
+      ? await navigator.storage.persisted()
+      : false;
+    el.textContent = `${size} · ${durable ? 'kept' : 'evictable'}`;
   } catch (err) {
     console.warn('Storage estimate unavailable:', err);
     el.textContent = 'Not available';
@@ -629,9 +644,7 @@ function setupSettingsHandlers() {
 
     const valid = await validateApiKey(key);
     if (valid) {
-      await saveSetting('apiKey', key);
-      state.settings.apiKey = key;
-      setApiKey(key);
+      await acceptApiKey(key);
       showToast('API key saved ✓', 'success');
     } else {
       showToast('Invalid API key', 'error');
