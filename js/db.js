@@ -275,6 +275,16 @@ export async function clearChatHistory() {
 }
 
 // ── Export to CSV ──
+// Food names come from the model, so a cell can begin with =, +, - or @.
+// Spreadsheets read those as formulas the moment the file is opened — the
+// classic CSV-injection path. A leading apostrophe pins the cell to text;
+// quoting alone does not, because Excel strips the quotes first.
+function csvCell(value) {
+  const text = String(value ?? '');
+  const safe = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
+  return `"${safe.replace(/"/g, '""')}"`;
+}
+
 export async function exportToCSV() {
   const meals = await getAllMeals();
 
@@ -301,9 +311,7 @@ export async function exportToCSV() {
 
   const csvContent = [
     headers.join(','),
-    ...rows.map(r => r.map(cell =>
-      `"${String(cell).replace(/"/g, '""')}"`
-    ).join(','))
+    ...rows.map(r => r.map(csvCell).join(','))
   ].join('\n');
 
   return csvContent;

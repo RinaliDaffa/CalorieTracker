@@ -30,6 +30,8 @@ export function formatChatContent(content) {
   return escapeHtml(content)
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/\n/g, '<br>')
-    .replace(/^- (.*)/gm, '• $1');
+    // Bullets before line breaks: the /m anchor needs real newlines, so
+    // running this after the <br> pass would only ever match the first line.
+    .replace(/^- (.*)/gm, '• $1')
+    .replace(/\n/g, '<br>');
 }

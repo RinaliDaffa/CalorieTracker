@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  MODEL_CANDIDATES, isModelUnavailableError, nextModel
+  MODEL_CANDIDATES, isKnownModel, isModelUnavailableError, nextModel
 } from '../../js/config/models.js';
 
 test('there is more than one candidate to fall back to', () => {
@@ -38,4 +38,23 @@ test('returns null when the list is exhausted', () => {
 
 test('returns null for a model that is not in the list', () => {
   assert.equal(nextModel('zzz', ['a', 'b']), null);
+});
+
+test('an auth failure outranks a 404 when both signals are present', () => {
+  // Order matters: a revoked key can come back as 404 with an auth message.
+  // Treating that as a retired model would burn the whole candidate list on
+  // a problem no other model can fix.
+  assert.equal(isModelUnavailableError(404, 'PERMISSION_DENIED'), false);
+});
+
+test('recognises a candidate the fallback chain can still advance from', () => {
+  assert.equal(isKnownModel(MODEL_CANDIDATES[0]), true);
+});
+
+test('rejects a model that has since been dropped from the list', () => {
+  // app.js restores this value from device storage, so it can be an ID a
+  // previous build wrote. nextModel() cannot advance from an unknown model.
+  assert.equal(isKnownModel('gemini-1.0-pro-retired'), false);
+  assert.equal(isKnownModel(''), false);
+  assert.equal(isKnownModel(undefined), false);
 });

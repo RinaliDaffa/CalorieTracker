@@ -47,3 +47,16 @@ test('injected markup is neutralised but markdown still renders', () => {
 test('newlines become line breaks', () => {
   assert.equal(formatChatContent('a\nb'), 'a<br>b');
 });
+
+test('every bullet in a list becomes a bullet, not just the first', () => {
+  // The /m anchor needs real newlines, so bullets have to be substituted
+  // before newlines become <br>. Getting that order wrong leaves every
+  // line after the first rendered as a literal "- ".
+  const out = formatChatContent('- protein\n- carbs\n- fat');
+  assert.equal(out, '• protein<br>• carbs<br>• fat');
+});
+
+test('a bullet list below a paragraph still renders', () => {
+  const out = formatChatContent('Try this:\n- more fibre');
+  assert.equal(out, 'Try this:<br>• more fibre');
+});

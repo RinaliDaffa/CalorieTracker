@@ -114,3 +114,28 @@ test('warns when one item of several is dropped, rather than losing it silently'
   assert.equal(result.value.foodItems.length, 1);
   assert.ok(result.warnings.some(w => w.includes('1 item')));
 });
+
+test('rejects a meal whose total is implausible even when every item is not', () => {
+  // Each item sits under the per-item ceiling, so only the meal-level check
+  // catches this. Saving it would poison the day's totals and every trend
+  // drawn from them.
+  const bad = validAnalysis();
+  bad.foodItems = [1, 2, 3].map((n) => ({
+    name: `Item ${n}`, servingSize: '1 porsi',
+    calories: 4000, protein: 100, carbs: 400, fat: 150, fiber: 5, sugar: 10
+  }));
+  const result = validateAnalysis(bad);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes(String(LIMITS.mealCalories.max))));
+  assert.equal(result.value, undefined);
+});
+
+test('leaves healthScore null rather than inventing one when the model omits it', () => {
+  // The UI keys off null to hide the badge; a fabricated 0 would render as
+  // a genuine "very unhealthy" verdict the model never gave.
+  const raw = validAnalysis();
+  delete raw.healthScore;
+  const result = validateAnalysis(raw);
+  assert.equal(result.ok, true);
+  assert.equal(result.value.healthScore, null);
+});

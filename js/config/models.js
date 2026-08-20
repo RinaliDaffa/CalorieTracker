@@ -24,6 +24,15 @@ export function isModelUnavailableError(status, message) {
   return false;
 }
 
+/**
+ * Is this a model the fallback chain still knows how to advance from?
+ * A model ID persisted by an older build may have been dropped from the
+ * list since, and nextModel() cannot advance from one it does not know.
+ */
+export function isKnownModel(model) {
+  return MODEL_CANDIDATES.includes(model);
+}
+
 /** The next candidate after `current`, or null if exhausted. */
 export function nextModel(current, candidates = MODEL_CANDIDATES) {
   const index = candidates.indexOf(current);

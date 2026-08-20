@@ -4,7 +4,7 @@
    ============================================ */
 
 import { validateAnalysis } from './core/nutrition.js';
-import { MODEL_CANDIDATES, isModelUnavailableError, nextModel } from './config/models.js';
+import { MODEL_CANDIDATES, isKnownModel, isModelUnavailableError, nextModel } from './config/models.js';
 
 let apiKey = null;
 
@@ -12,7 +12,12 @@ let apiKey = null;
 let activeModel = MODEL_CANDIDATES[0];
 
 export function setModel(model) {
-  if (model) activeModel = model;
+  // Only accept a model that is still a candidate. app.js restores this
+  // from device storage, so an ID saved by an older build can outlive its
+  // place in the list — and nextModel() returns null for a model it does
+  // not recognise, which would strand the fallback walk on its first step
+  // instead of trying the candidates we still have.
+  if (isKnownModel(model)) activeModel = model;
 }
 
 export function getModel() {
