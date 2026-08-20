@@ -12,6 +12,7 @@ A completely free, AI-powered calorie tracker that runs as a Progressive Web App
 - 🎯 **Goal Setting** — Customizable daily calorie & macro targets
 - ⭐ **Favorites** — Save frequent meals for one-tap logging
 - ✏️ **Manual Entry** — Add meals by description when you don't have a photo
+- 🖼️ **Meal Photos** — The photo you scanned is kept and shown in meal detail
 - 📤 **CSV Export** — Download your full meal history
 - 🌙 **Dark & Light Mode** — Beautiful premium design
 - 📱 **PWA** — Installable on iPhone, works offline
@@ -88,12 +89,36 @@ CalorieTracker/
 │   ├── camera.js       # Camera & image handling
 │   ├── charts.js       # Canvas progress rings & charts
 │   ├── ui.js           # UI rendering
-│   └── utils.js        # Helpers & constants
+│   ├── utils.js        # Helpers & constants
+│   ├── core/           # Pure logic — no DOM, no network, unit-tested
+│   │   ├── escape.js       # HTML escaping & chat markdown
+│   │   └── nutrition.js    # Validates & clamps model output
+│   └── config/
+│       └── models.js       # Model candidates & fallback selection
+├── tests/              # node --test, zero dependencies
 ├── icons/
 │   ├── icon-192.png
 │   └── icon-512.png
+├── package.json        # Scripts only — no runtime dependencies
 └── README.md
 ```
+
+Anything under `js/core/` is pure: it never touches `document`, `window`,
+`indexedDB` or `fetch`, so it runs under the Node test runner. Browser modules
+import from `core/`; `core/` never imports back.
+
+## 🧪 Development
+
+```bash
+npm test        # runs every tests/**/*.test.js — no install step needed
+npm run serve   # serves the app on http://localhost:3111
+```
+
+There is no build step and no runtime dependency. Editing a file and reloading
+is the whole loop.
+
+**When you deploy a change, bump `VERSION` in `sw.js`.** That string names the
+cache, and changing it is what evicts the previous one on installed devices.
 
 ## 💡 Tips
 

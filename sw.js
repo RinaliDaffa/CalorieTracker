@@ -5,7 +5,7 @@
 // ============================================
 
 // Bump VERSION on every deploy. This is what evicts the previous cache.
-const VERSION = 'v2.0.0';
+const VERSION = 'v2.0.1';
 const CACHE_NAME = `nutrisnap-${VERSION}`;
 
 // Precached so the app opens offline. Deliberately NOT atomic:
