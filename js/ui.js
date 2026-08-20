@@ -254,20 +254,25 @@ export function renderScanResults(analysisData) {
   if (!container || !analysisData) return;
 
   const { foodItems, totalNutrition, healthScore, aiTips, mealDescription } = analysisData;
-  const emoji = getHealthScoreEmoji(healthScore);
-  const label = getHealthScoreLabel(healthScore);
+
+  // healthScore is null when the model omitted it or sent something that
+  // was not a number (js/core/nutrition.js). Rendering the badge anyway
+  // gives "🔴 null/10 Poor" — a fabricated bad score rather than a missing
+  // one, which is worse than showing nothing.
+  const hasHealthScore = typeof healthScore === 'number';
+  const healthScoreHTML = hasHealthScore ? `
+          <div class="health-score">
+            <span>${getHealthScoreEmoji(healthScore)}</span>
+            <span class="health-score-number">${healthScore}/10</span>
+            <span style="font-size: var(--fs-xs); color: var(--text-tertiary);">${getHealthScoreLabel(healthScore)}</span>
+          </div>` : '';
 
   container.innerHTML = `
     <div class="stagger-in" style="display: flex; flex-direction: column; gap: var(--space-base);">
       <!-- Meal Summary -->
       <div class="glass-card no-press">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-md);">
-          <h4>Analysis Result</h4>
-          <div class="health-score">
-            <span>${emoji}</span>
-            <span class="health-score-number">${healthScore}/10</span>
-            <span style="font-size: var(--fs-xs); color: var(--text-tertiary);">${label}</span>
-          </div>
+          <h4>Analysis Result</h4>${healthScoreHTML}
         </div>
         <p style="font-size: var(--fs-sm); color: var(--text-secondary); margin-bottom: var(--space-md);">${escapeHtml(mealDescription || '')}</p>
 
@@ -671,6 +676,13 @@ export function renderSettingsView(settings, goals) {
           </div>
           <div class="settings-item" style="border: none;">
             <div>
+              <div class="settings-item-label">Storage Used</div>
+              <div class="settings-item-desc">Photos and meal history on this device</div>
+            </div>
+            <span id="storage-estimate" style="font-size: var(--fs-sm); color: var(--text-tertiary);">Checking...</span>
+          </div>
+          <div class="settings-item" style="border: none;">
+            <div>
               <div class="settings-item-label">Clear Chat History</div>
               <div class="settings-item-desc">Delete all AI chat messages</div>
             </div>
@@ -729,13 +741,22 @@ export function closeModal() {
 }
 
 // ── Show Meal Detail Modal ──
-export function showMealDetailModal(meal) {
+export function showMealDetailModal(meal, photoBlob) {
   const icon = MEAL_ICONS[meal.mealType] || '🍽️';
   const label = MEAL_LABELS[meal.mealType] || meal.mealType;
   const items = meal.foodItems || [];
 
+  const photoURL = photoBlob ? URL.createObjectURL(photoBlob) : null;
+  const photoHTML = photoURL
+    ? `<div style="margin-bottom: var(--space-md);">
+        <img id="meal-detail-photo" src="${photoURL}" alt="Photo of this meal"
+             style="width: 100%; border-radius: var(--radius-lg); max-height: 200px; object-fit: cover;" />
+       </div>`
+    : '';
+
   const content = `
     <div style="display: flex; flex-direction: column; gap: var(--space-base);">
+      ${photoHTML}
       <div style="display: flex; align-items: center; gap: var(--space-md);">
         <span style="font-size: 32px;">${icon}</span>
         <div>
@@ -797,6 +818,24 @@ export function showMealDetailModal(meal) {
   `;
 
   showModal(`${icon} ${label}`, content);
+
+  if (photoURL) revokeWhenLoaded(document.getElementById('meal-detail-photo'), photoURL);
+}
+
+// ── Object URL Lifetime ──
+// An object URL pins its blob in memory until it is revoked or the document
+// unloads. Meal photos are full-size and history gets tapped repeatedly, so
+// without this every tap leaks another one. Revoking on load rather than
+// straight after assigning `src` is deliberate — the image has to have read
+// the URL before it goes away.
+export function revokeWhenLoaded(img, url) {
+  if (!img) {
+    URL.revokeObjectURL(url);
+    return;
+  }
+  const release = () => URL.revokeObjectURL(url);
+  img.addEventListener('load', release, { once: true });
+  img.addEventListener('error', release, { once: true });
 }
 
 // ── Favorites Modal ──

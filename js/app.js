@@ -8,12 +8,12 @@ import { initDB, saveMeal, getMealsByDate, getAllMeals, getMeal, deleteMeal as d
          saveFavorite, getFavorites, deleteFavorite,
          saveChatMessage, getChatHistory, clearChatHistory,
          exportToCSV, getMealPhoto } from './db.js';
-import { setApiKey, analyzeFood, analyzeFoodByText, chatWithAI, validateApiKey } from './gemini.js';
+import { setApiKey, analyzeFood, analyzeFoodByText, chatWithAI, validateApiKey, setModel, getModel } from './gemini.js';
 import { startCamera, stopCamera, capturePhoto, processImageFile, isCameraAvailable } from './camera.js';
 import { renderDashboard, renderScanView, renderHistoryView, renderChatView,
          renderSettingsView, renderScanResults, showToast, showModal, closeModal,
          showMealDetailModal, showFavoritesModal, showManualAddModal,
-         setupMealTypeSelector, getSelectedMealType,
+         setupMealTypeSelector, getSelectedMealType, revokeWhenLoaded,
          appendChatMessage, showChatTyping, removeChatTyping } from './ui.js';
 import { getToday, formatDate, sumNutrition, blobToBase64 } from './utils.js';
 
@@ -48,6 +48,8 @@ async function init() {
     // the app, because a static site cannot hold a secret.
     if (state.settings.apiKey) {
       setApiKey(state.settings.apiKey);
+      // Restore the last known working model so we skip the fallback chain
+      if (state.settings.activeModel) setModel(state.settings.activeModel);
       hideOnboarding();
       await renderCurrentView();
     } else {
@@ -225,8 +227,9 @@ function setupScanHandlers() {
   const fileInput = document.getElementById('file-input');
   const analyzeTextBtn = document.getElementById('btn-analyze-text');
 
-  // Meal type selector
+  // Meal type selector — pre-select based on time of day
   setupMealTypeSelector('meal-type-selector');
+  autoSelectMealType('meal-type-selector');
 
   // Camera / Capture
   captureBtn?.addEventListener('click', async () => {
@@ -323,6 +326,7 @@ function setupScanHandlers() {
       renderScanResults(result);
       setupResultHandlers();
       showAnalysisWarnings(result);
+      await rememberActiveModel();
     } catch (err) {
       showToast(err.message || 'Analysis failed', 'error');
     } finally {
@@ -337,7 +341,9 @@ function showPreview(blob) {
   const retakeBtn = document.getElementById('btn-retake');
   const placeholder = document.getElementById('camera-placeholder');
 
-  previewImg.src = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(blob);
+  previewImg.src = url;
+  revokeWhenLoaded(previewImg, url);
   previewImg.style.display = 'block';
   video.style.display = 'none';
   retakeBtn.style.display = 'flex';
@@ -362,6 +368,7 @@ async function analyzeCurrentPhoto() {
     renderScanResults(result);
     setupResultHandlers();
     showAnalysisWarnings(result);
+    await rememberActiveModel();
   } catch (err) {
     showToast(err.message || 'Failed to analyze food', 'error');
   } finally {
@@ -385,6 +392,38 @@ function showAnalysisWarnings(result) {
     showToast(result.warnings.join(' '), 'info', 5000);
   }
 }
+
+// gemini.js resolves a working model by walking the candidate list, and each
+// retired candidate it steps past costs a real failed request. Persist the one
+// that answered so the next launch starts there instead of paying that walk
+// again. Only known candidates are restored — see setModel in gemini.js.
+async function rememberActiveModel() {
+  const model = getModel();
+  if (model === state.settings.activeModel) return;
+  state.settings.activeModel = model;
+  try {
+    await saveSetting('activeModel', model);
+  } catch (err) {
+    // Losing the shortcut costs one extra request next launch, nothing more.
+    console.warn('Could not persist active model:', err);
+  }
+}
+
+// Pre-select the meal type button that best matches the current time of day.
+function autoSelectMealType(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const hour = new Date().getHours();
+  let type = 'snack';
+  if (hour >= 5  && hour < 10) type = 'breakfast';
+  else if (hour >= 10 && hour < 15) type = 'lunch';
+  else if (hour >= 15 && hour < 21) type = 'dinner';
+
+  container.querySelectorAll('.meal-type-option').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.type === type);
+  });
+}
+
 
 function setupResultHandlers() {
   const saveBtn = document.getElementById('btn-save-meal');
@@ -522,6 +561,7 @@ function setupChatHandlers() {
 
       const assistantMsg = await saveChatMessage({ role: 'assistant', content: response });
       appendChatMessage(assistantMsg);
+      await rememberActiveModel();
     } catch (err) {
       removeChatTyping();
       showToast(err.message || 'Failed to get AI response', 'error');
@@ -546,7 +586,35 @@ function setupChatHandlers() {
 }
 
 // ── Settings Handlers ──
+function formatBytes(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '0 MB';
+  const mb = bytes / 1024 / 1024;
+  return mb >= 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${mb.toFixed(1)} MB`;
+}
+
+// Photos dominate this number, and iOS reclaims storage from sites it
+// considers idle — worth showing before someone loses months of history.
+async function showStorageEstimate() {
+  const el = document.getElementById('storage-estimate');
+  if (!el) return;
+  if (!navigator.storage?.estimate) {
+    el.textContent = 'Not available';
+    return;
+  }
+  try {
+    const { usage, quota } = await navigator.storage.estimate();
+    el.textContent = quota
+      ? `${formatBytes(usage)} of ${formatBytes(quota)}`
+      : formatBytes(usage);
+  } catch (err) {
+    console.warn('Storage estimate unavailable:', err);
+    el.textContent = 'Not available';
+  }
+}
+
 function setupSettingsHandlers() {
+  showStorageEstimate();
+
   // Save API Key
   document.getElementById('btn-save-api-key')?.addEventListener('click', async () => {
     const key = document.getElementById('input-api-key')?.value?.trim();
@@ -654,9 +722,9 @@ async function changeMonth(delta) {
 // ── Meal Detail ──
 async function showMealDetail(mealId) {
   const meal = await getMeal(mealId);
-  if (meal) {
-    showMealDetailModal(meal);
-  }
+  if (!meal) return;
+  const photoBlob = meal.hasPhoto ? await getMealPhoto(mealId) : null;
+  showMealDetailModal(meal, photoBlob);
 }
 
 async function deleteMealAndRefresh(mealId) {
