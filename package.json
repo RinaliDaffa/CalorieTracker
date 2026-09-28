@@ -1,10 +1,25 @@
 {
   "name": "nutrisnap",
-  "version": "2.0.0",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@11.8.0",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
-    "test": "node --test",
-    "serve": "npx -y serve . -l 3111"
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "e2e": "pnpm --filter @nutrisnap/web e2e",
+    "legacy:serve": "serve legacy -l 3111",
+    "legacy:test": "node --test \"legacy/tests/**/*.test.js\""
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.14",
+    "serve": "^14.2.6",
+    "turbo": "^2.11.5",
+    "typescript": "^7.0.2"
   }
 }

@@ -2,9 +2,9 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "nutrisnap",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["-y", "serve", ".", "-l", "3111"],
+      "name": "nutrisnap-legacy",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["legacy:serve"],
       "port": 3111
     }
   ]
