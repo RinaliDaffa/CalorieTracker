@@ -371,7 +371,7 @@ Every record carries `id` (UUIDv7), `updatedAt`, and `deletedAt?` (tombstone). D
 meals        id, date, time, mealType, source, status, items[], photoId?,
              note?, sharedBy?, healthScore?, tip?, createdAt, updatedAt, deletedAt?
              mealType: breakfast|lunch|dinner|snack|sahur|buka|malam
-             source:   photo|barcode|label|screenshot|text|search|recipe|quick|legacy
+             source:   photo|barcode|label|screenshot|text|search|recipe|quick|favorite|legacy
              status:   queued|analyzing|done|failed
 
 FoodItem     refId?, name, portion {unit, count, grams?}, servingText?, eatenFraction,
@@ -393,12 +393,14 @@ chats        id, role, content, createdAt
 reviews      id, weekStart, content
 queue        id, photoId, note?, attempts, nextAttemptAt
 profile      heightCm?, weightKg?, birthYear?, sex?, activity?, goal?, rateKgPerWeek?,
-             locale, ramadanMode, ramadanCity?, sugarSaltWatch, plateSize?, theme
+             ramadanMode, ramadanCity?, sugarSaltWatch, plateSize?
 settings     key, value            ← own API key, active model per provider, UI flags
 meta         schemaVersion, deviceId, lastBackupAt, legacyImportedAt?
 ```
 
 `settings` is excluded from JSON backups and from sync: an API key never leaves the device except in requests to its own provider.
+
+Theme and UI language are kept in `localStorage`, not Dexie, because both must apply before first paint and IndexedDB is asynchronous.
 
 Stores are introduced by the sub-project that first needs them; unused fields are optional from SP0 onward so no later migration rewrites existing records.
 
@@ -452,7 +454,7 @@ Rule: **never lose a meal, never a dead end, never an error code.**
 - **API (Vitest workers pool):** quota enforcement, pass signing/expiry, router fallback, country gating, cache behaviour.
 - **E2E (Playwright):** Chromium, WebKit, Firefox × phone and desktop viewports; recorded AI fixtures via the platform test adapter; offline flow, quota-exhausted flow, legacy import, axe accessibility (zero serious violations).
 - **Accuracy benchmark:** §7.8, manual.
-- **Budgets (CI, blocking):** initial-route JavaScript ≤ **150 KB gzipped**; Lighthouse mobile performance ≥ **90**, accessibility ≥ **95**, PWA installable.
+- **Budgets (CI, blocking):** initial-route JavaScript ≤ **150 KB gzipped**; Lighthouse mobile performance ≥ **90**, accessibility ≥ **95**; installability (manifest, icons, service worker, offline shell) checked by e2e, since Lighthouse no longer has a PWA category.
 - **Real devices (per release):** iPhone Safari install, rear camera, orientation after re-encode, storage persistence across relaunch, update reaches the installed app; a budget Android phone.
 
 ---

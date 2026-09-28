@@ -58,7 +58,7 @@ Existing tests (`nutrition`, `models`) are ported to Vitest unchanged in intent.
 
 ### `packages/ai`
 
-- Prompt builders and Zod response schemas for: photo analysis, text analysis, chat (with today's context), key validation — ported from `js/gemini.js` with the same output shape (per-item totals, `servingSize` text, health score, tip, description).
+- Prompt builders and the Gemini response schema for: photo analysis, text analysis, chat (with today's context), key validation — ported from `js/gemini.js` with the same output shape (per-item totals, `servingSize` text, health score, tip, description). The runtime guard on model output stays `core/validateAnalysis` (already tested and stricter than a shape check); Zod arrives with the API contracts in SP1.
 - Model candidate list and fallback logic, ported from `js/config/models.js`. Two changes:
   - Candidate IDs are re-verified against Google's current model list at implementation time.
   - A per-model **daily quota** 429 also advances to the next candidate, because free limits are per model; a per-minute 429 does not (it retries after the stated delay).
@@ -100,7 +100,7 @@ Every row is an automated Playwright test unless marked *manual*.
 
 ## 5. Data (SP0 subset of master §10.1)
 
-Stores created in SP0: `meals`, `photos`, `favorites`, `chats`, `targets`, `profile` (locale, theme only), `settings`, `meta`.
+Stores created in SP0: `meals`, `photos`, `favorites`, `chats`, `targets`, `settings`, `meta`. Theme and UI language live in `localStorage`, because both must apply before first paint (IndexedDB is asynchronous); `profile` arrives in SP3.
 
 - All records: UUIDv7 `id`, `updatedAt`, `deletedAt?`.
 - SP0 meal items use `portion = {unit: 'serving', count: 1}`, `servingText` from the model, `nutrition` as returned (validated), `source: 'ai'`, no `per100g`.
@@ -125,7 +125,7 @@ IndexedDB is scoped to the site's origin. When SP0 is served from the origin the
 | `meal.foodItems[]` (`name`, `servingSize`, `calories`, macros) | `FoodItem` with `servingText = servingSize`, `nutrition` from the legacy numbers, `source: 'legacy'`, `portion = {unit: 'serving', count: 1}` |
 | `photos` (keyed by `mealId`) | `photos` with a new id, linked through `meal.photoId`; `thumb` generated during import |
 | `goals` (`id: 'current'`) | one `targets` record, `effectiveFrom` = earliest legacy meal date (or today), reason `manual` unless equal to the defaults (`default`) |
-| `settings` (`apiKey`, `activeModel`, `theme`) | `settings` (`apiKey`, `activeModel`) and `profile.theme` |
+| `settings` (`apiKey`, `activeModel`, `theme`) | `settings` (`apiKey`, `activeModel`, `onboarded: true` when a key exists) and the `localStorage` theme |
 | `favorites`, `chats` | same stores, new UUIDv7 ids |
 
 4. Set `meta.legacyImportedAt`.
@@ -150,8 +150,9 @@ If SP0 is deployed at a different origin from wherever the owner's legacy data l
 
 - Typecheck, Biome, Vitest (all packages).
 - Playwright: Chromium, WebKit, Firefox × phone (390×844) and desktop (1280×800); AI responses from recorded fixtures; axe with zero serious violations.
-- Initial-route JavaScript ≤ 150 KB gzipped (size-limit).
-- Lighthouse CI (mobile): performance ≥ 90, accessibility ≥ 95, installable PWA.
+- Initial-route JavaScript ≤ 150 KB gzipped (a budget script sums every script `index.html` loads eagerly).
+- Lighthouse CI (mobile): performance ≥ 90, accessibility ≥ 95.
+- Installability (Lighthouse no longer has a PWA category): an e2e test checks the manifest fields, icons, and service-worker registration, and that the shell loads offline.
 - Secret scan: no API key patterns in the repository.
 
 ---
