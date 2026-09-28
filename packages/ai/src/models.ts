@@ -1,17 +1,21 @@
 /**
- * Ordered best-first. Google retires model IDs on a regular cadence; the
- * `-latest` aliases move with them, and the pinned IDs are the fallback.
- *
- * Checked against https://ai.google.dev/gemini-api/docs/models on
- * 2026-09-28: the `gemini-flash-latest` / `gemini-flash-lite-latest`
- * aliases no longer appear as model-table rows (only as prose examples of
- * the naming pattern), so the current stable IDs are pinned first instead.
- * `gemini-2.0-flash` / `gemini-2.0-flash-lite` have since been shut down;
- * `gemini-2.5-flash` / `gemini-2.5-flash-lite` remain as older fallbacks.
+ * Ordered best-first. Pinned stable IDs lead, per Google's own advice to use
+ * specific stable models in production: `gemini-3.8-flash` and
+ * `gemini-3.5-flash-lite` are the current GA Flash / Flash-Lite models;
+ * `gemini-3.6-flash` is another stable Flash release with no shutdown date
+ * and a free tier. `gemini-flash-latest` is the documented hot-swapped
+ * alias (models page, "Model version name patterns → Latest"; changelog
+ * 2026-05-19 confirms it currently points at `gemini-3.5-flash`) — kept
+ * after the pinned IDs since it can move to a preview release. `gemini-2.5-flash`
+ * / `gemini-2.5-flash-lite` are restricted (since 2026-09-18) to API keys
+ * that used them before, so they're last-resort for legacy keys only.
+ * `gemini-2.0-flash` / `gemini-2.0-flash-lite` are shut down and omitted.
  */
 export const MODEL_CANDIDATES: readonly string[] = [
   'gemini-3.8-flash',
   'gemini-3.5-flash-lite',
+  'gemini-3.6-flash',
+  'gemini-flash-latest',
   'gemini-2.5-flash',
   'gemini-2.5-flash-lite',
 ];
