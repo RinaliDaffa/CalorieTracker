@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "nutrisnap-web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@nutrisnap/web", "dev"],
+      "port": 5173
+    },
+    {
       "name": "nutrisnap-legacy",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["legacy:serve"],

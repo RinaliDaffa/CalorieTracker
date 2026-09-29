@@ -1,0 +1,58 @@
+import { isDateKey } from '@nutrisnap/core';
+import {
+  createRootRoute,
+  createRoute,
+  createRouter,
+  lazyRouteComponent,
+} from '@tanstack/react-router';
+import { Dashboard } from '@/features/dashboard/Dashboard';
+import { AppShell } from '@/shell/AppShell';
+import { RootLayout } from '@/shell/RootLayout';
+
+const rootRoute = createRootRoute({ component: RootLayout });
+
+const appRoute = createRoute({ getParentRoute: () => rootRoute, id: 'app', component: AppShell });
+
+const dashboardRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/',
+  component: Dashboard,
+});
+
+const scanRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/scan',
+  component: lazyRouteComponent(() => import('@/features/scan/ScanScreen'), 'ScanScreen'),
+});
+
+const historyRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/history',
+  validateSearch: (search: Record<string, unknown>): { date?: string } =>
+    isDateKey(search.date) ? { date: search.date } : {},
+  component: lazyRouteComponent(() => import('@/features/history/History'), 'History'),
+});
+
+const chatRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/chat',
+  component: lazyRouteComponent(() => import('@/features/chat/Chat'), 'Chat'),
+});
+
+const settingsRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/settings',
+  component: lazyRouteComponent(() => import('@/features/settings/Settings'), 'Settings'),
+});
+
+const routeTree = rootRoute.addChildren([
+  appRoute.addChildren([dashboardRoute, scanRoute, historyRoute, chatRoute, settingsRoute]),
+]);
+
+export const router = createRouter({ routeTree, defaultPreload: 'intent' });
+
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router;
+  }
+}

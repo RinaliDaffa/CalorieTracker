@@ -1,0 +1,95 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --radius: 0.875rem;
+  --background: #f7f8fa;
+  --foreground: #0b1220;
+  --card: #ffffff;
+  --card-foreground: #0b1220;
+  --popover: #ffffff;
+  --popover-foreground: #0b1220;
+  --primary: #047857;
+  --primary-foreground: #ffffff;
+  --secondary: #eef1f5;
+  --secondary-foreground: #0b1220;
+  --muted: #eef1f5;
+  --muted-foreground: #525b6b;
+  --accent: #e3f5ee;
+  --accent-foreground: #064e3b;
+  --destructive: #b91c1c;
+  --border: #e3e7ee;
+  --input: #d4dae4;
+  --ring: #10b981;
+  --protein: #3b82f6;
+  --carbs: #f59e0b;
+  --fat: #ef4444;
+  --fiber: #8b5cf6;
+  --sugar: #ec4899;
+}
+
+.dark {
+  --background: #0a0e17;
+  --foreground: #e8edf5;
+  --card: #121826;
+  --card-foreground: #e8edf5;
+  --popover: #121826;
+  --popover-foreground: #e8edf5;
+  --primary: #10b981;
+  --primary-foreground: #04110c;
+  --secondary: #1b2333;
+  --secondary-foreground: #e8edf5;
+  --muted: #1b2333;
+  --muted-foreground: #9aa5b8;
+  --accent: #10231d;
+  --accent-foreground: #6ee7b7;
+  --destructive: #f87171;
+  --border: #232c3d;
+  --input: #2a3446;
+  --ring: #10b981;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-protein: var(--protein);
+  --color-carbs: var(--carbs);
+  --color-fat: var(--fat);
+  --color-fiber: var(--fiber);
+  --color-sugar: var(--sugar);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+}
