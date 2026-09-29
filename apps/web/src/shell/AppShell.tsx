@@ -2,6 +2,7 @@ import { Link, Outlet } from '@tanstack/react-router';
 import { CalendarDays, Camera, Home, MessageCircle, Settings } from 'lucide-react';
 import type { ComponentType } from 'react';
 import { cn } from '@/lib/utils';
+import { m } from '@/paraglide/messages.js';
 
 interface NavItem {
   to: '/' | '/history' | '/scan' | '/chat' | '/settings';
@@ -11,11 +12,11 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { to: '/', label: () => 'Home', icon: Home },
-  { to: '/history', label: () => 'History', icon: CalendarDays },
-  { to: '/scan', label: () => 'Scan', icon: Camera, primary: true },
-  { to: '/chat', label: () => 'Ask AI', icon: MessageCircle },
-  { to: '/settings', label: () => 'Settings', icon: Settings },
+  { to: '/', label: () => m.nav_home(), icon: Home },
+  { to: '/history', label: () => m.nav_history(), icon: CalendarDays },
+  { to: '/scan', label: () => m.nav_scan(), icon: Camera, primary: true },
+  { to: '/chat', label: () => m.nav_chat(), icon: MessageCircle },
+  { to: '/settings', label: () => m.nav_settings(), icon: Settings },
 ];
 
 export function AppShell() {
@@ -25,13 +26,13 @@ export function AppShell() {
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded-md focus:bg-card focus:px-3 focus:py-2"
       >
-        Skip to content
+        {m.skip_to_content()}
       </a>
       <nav
-        aria-label="Main"
+        aria-label={m.nav_label()}
         className="fixed inset-x-0 bottom-0 z-40 border-t bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:sticky lg:top-0 lg:h-dvh lg:w-60 lg:shrink-0 lg:border-t-0 lg:border-r lg:pb-0"
       >
-        <p className="hidden px-6 py-6 text-lg font-bold lg:block">NutriSnap</p>
+        <p className="hidden px-6 py-6 text-lg font-bold lg:block">{m.app_name()}</p>
         <ul className="grid grid-cols-5 lg:flex lg:flex-col lg:gap-1 lg:px-3">
           {NAV.map((item) => (
             <li key={item.to}>
