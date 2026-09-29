@@ -26,7 +26,7 @@ export default defineConfig({
       name: 'chromium-phone',
       use: { browserName: 'chromium', ...phone, isMobile: true, hasTouch: true },
     },
-    { name: 'webkit-phone', use: { ...devices['iPhone 14'] } },
+    { name: 'webkit-phone', use: { ...devices['iPhone 14'], ...phone } },
     { name: 'firefox-phone', use: { browserName: 'firefox', ...phone } },
     { name: 'chromium-desktop', use: { browserName: 'chromium', ...desktop } },
     { name: 'webkit-desktop', use: { browserName: 'webkit', ...desktop } },
