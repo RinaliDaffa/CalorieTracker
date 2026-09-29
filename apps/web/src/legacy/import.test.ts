@@ -3,7 +3,7 @@ import { describe, expect, test, vi } from 'vitest';
 import { getMeta } from '@/db/meta';
 import { getSetting, setSetting } from '@/db/settings';
 import { freshDb } from '@/db/test-db';
-import { importLegacyIfPresent } from './import';
+import { importLegacyDump, importLegacyIfPresent } from './import';
 import { legacyToJson, parseLegacyJson } from './json';
 import { readLegacy } from './read';
 import { createLegacyFixture } from './test-fixture';
@@ -119,6 +119,26 @@ describe('importLegacyIfPresent', () => {
     expect(outcome.status).toBe('failed');
     expect(await d.meals.count()).toBe(0);
     expect(await getMeta(d, 'legacyImportedAt')).toBeUndefined();
+  });
+
+  test('two concurrent imports do not duplicate records', async () => {
+    const d = freshDb();
+    const [a, b] = await Promise.all([
+      importLegacyDump(d, sample, { makeThumb }),
+      importLegacyDump(d, sample, { makeThumb }),
+    ]);
+    const statuses = [a.status, b.status].sort();
+    expect(statuses).toEqual(['already', 'imported']);
+    expect(await d.meals.count()).toBe(sample.meals.length);
+  });
+
+  test('a v3 database read failure resolves failed instead of rejecting', async () => {
+    const d = freshDb();
+    const name = legacyName();
+    await createLegacyFixture(indexedDB, name, sample);
+    vi.spyOn(d.meta, 'get').mockRejectedValue(new Error('boom'));
+    const outcome = await importLegacyIfPresent(d, { legacyName: name, makeThumb });
+    expect(outcome).toEqual({ status: 'failed', error: new Error('boom') });
   });
 });
 

@@ -4,6 +4,11 @@ import { enableTestMode } from './helpers';
 test("imports the old app's data on first launch and leaves it in place", async ({ page }) => {
   await enableTestMode(page);
   await page.goto('/');
+  // The first boot's own legacy check (dynamic test-platform import, Dexie
+  // open, getMeta) runs after 'load' fires, so wait for the app to actually
+  // render before seeding — otherwise seeding can land first and this boot
+  // imports it, leaving the second goto below with nothing to import.
+  await expect(page.locator('#root')).not.toBeEmpty();
 
   await page.evaluate(async () => {
     const now = Date.now();
