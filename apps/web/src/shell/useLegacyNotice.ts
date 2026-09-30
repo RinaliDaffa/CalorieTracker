@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { toast } from 'sonner';
 import { downloadLegacyBackup, takeLegacyOutcome } from '@/legacy/startup';
+import { toast } from '@/lib/toast';
 import { m } from '@/paraglide/messages.js';
 
 export function useLegacyNotice(): void {

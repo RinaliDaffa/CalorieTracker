@@ -1,7 +1,6 @@
 import { itemTotals, mealTotals } from '@nutrisnap/core';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useRef } from 'react';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -14,6 +13,7 @@ import { getMealWithPhoto, restoreMeal, softDeleteMeal } from '@/db/meals';
 import { db } from '@/db/schema';
 import { formatNumber, formatTime } from '@/lib/i18n';
 import { mealTypeLabel } from '@/lib/labels';
+import { toast } from '@/lib/toast';
 import { useObjectUrl } from '@/lib/use-object-url';
 import { m } from '@/paraglide/messages.js';
 import { HealthBadge } from './HealthBadge';
