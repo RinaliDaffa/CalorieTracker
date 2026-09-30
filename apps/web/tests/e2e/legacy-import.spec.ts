@@ -68,6 +68,8 @@ test("imports the old app's data on first launch and leaves it in place", async 
     timeout: 15000,
   });
 
+  await expect(page.getByText('Gado-gado')).toBeVisible();
+
   const stillThere = await page.evaluate(
     () =>
       new Promise<number>((resolve) => {
