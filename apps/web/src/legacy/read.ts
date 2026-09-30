@@ -1,34 +1,9 @@
+import { LEGACY_DB_NAME, openExisting } from './open';
 import type { LegacyDump } from './types';
 
-export const LEGACY_DB_NAME = 'nutrisnap';
-const STORES = ['meals', 'photos', 'goals', 'settings', 'favorites', 'chats'] as const;
+export { LEGACY_DB_NAME };
 
-/**
- * Opens an existing database without creating one: if the open would create
- * it (oldVersion 0), the upgrade is aborted, which discards the new database.
- */
-function openExisting(factory: IDBFactory, name: string): Promise<IDBDatabase | null> {
-  return new Promise((resolve, reject) => {
-    const request = factory.open(name);
-    let creating = false;
-    request.onupgradeneeded = (event) => {
-      if (event.oldVersion === 0) {
-        creating = true;
-        request.transaction?.abort();
-      }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = (event) => {
-      if (creating) {
-        event.preventDefault();
-        resolve(null);
-      } else {
-        reject(request.error);
-      }
-    };
-    request.onblocked = () => reject(new Error('Legacy database is blocked'));
-  });
-}
+const STORES = ['meals', 'photos', 'goals', 'settings', 'favorites', 'chats'] as const;
 
 function getAll(database: IDBDatabase, store: string): Promise<unknown[]> {
   if (!database.objectStoreNames.contains(store)) return Promise.resolve([]);
