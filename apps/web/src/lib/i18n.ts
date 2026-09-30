@@ -1,3 +1,4 @@
+import type { Lang } from '@nutrisnap/ai';
 import { type DateKey, parseDateKey } from '@nutrisnap/core';
 import { getLocale, setLocale } from '@/paraglide/runtime.js';
 
@@ -47,4 +48,8 @@ export function formatBytes(bytes: number): string {
   const mb = bytes / 1024 / 1024;
   const format = new Intl.NumberFormat(tag(), { maximumFractionDigits: 1 });
   return mb >= 1024 ? `${format.format(mb / 1024)} GB` : `${format.format(mb)} MB`;
+}
+
+export function aiLang(): Lang {
+  return currentLocale();
 }

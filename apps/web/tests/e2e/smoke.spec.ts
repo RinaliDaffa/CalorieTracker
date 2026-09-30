@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
-import { expectNoSeriousA11yViolations } from './helpers';
+import { completeOnboarding, expectNoSeriousA11yViolations } from './helpers';
 
 test('every main screen is reachable from the navigation', async ({ page }) => {
-  await page.goto('/');
+  await completeOnboarding(page);
   const nav = page.getByRole('navigation', { name: 'Main' });
   const screens = [
     ['History', 'History'],

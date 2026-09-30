@@ -12,6 +12,7 @@
     "e2e": "playwright test"
   },
   "dependencies": {
+    "@nutrisnap/ai": "workspace:*",
     "@nutrisnap/core": "workspace:*",
     "@nutrisnap/platform": "workspace:*",
     "@tanstack/react-router": "^1.170.40",
