@@ -59,6 +59,7 @@ export function AppShell() {
       </nav>
       <main
         id="main"
+        tabIndex={-1}
         className="mx-auto w-full max-w-2xl px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-10"
       >
         <Outlet />

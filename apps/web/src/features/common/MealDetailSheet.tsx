@@ -1,5 +1,6 @@
 import { itemTotals, mealTotals } from '@nutrisnap/core';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { useRef } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,10 +22,14 @@ import { NutritionTable } from './NutritionTable';
 export function MealDetailSheet({
   mealId,
   onClose,
+  returnFocusTo,
 }: {
   mealId: string | null;
   onClose: () => void;
+  /** Where focus goes on close if the element that opened the sheet is gone. Defaults to <main>. */
+  returnFocusTo?: () => HTMLElement | null;
 }) {
+  const opener = useRef<HTMLElement | null>(null);
   const data = useLiveQuery(() => (mealId ? getMealWithPhoto(db, mealId) : undefined), [mealId]);
   const photoUrl = useObjectUrl(data?.photo?.full);
 
@@ -37,7 +42,22 @@ export function MealDetailSheet({
   const meal = data?.meal;
   return (
     <Sheet open={mealId !== null} onOpenChange={(open) => (open ? undefined : onClose())}>
-      <SheetContent side="bottom" className="max-h-[90dvh] overflow-y-auto rounded-t-2xl">
+      <SheetContent
+        side="bottom"
+        className="max-h-[90dvh] overflow-y-auto rounded-t-2xl"
+        onOpenAutoFocus={() => {
+          opener.current =
+            document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        }}
+        onCloseAutoFocus={(event) => {
+          // Controlled sheet without a trigger: Radix would focus null, so restore focus ourselves.
+          event.preventDefault();
+          const target = opener.current?.isConnected
+            ? opener.current
+            : (returnFocusTo?.() ?? document.getElementById('main'));
+          target?.focus();
+        }}
+      >
         <SheetHeader>
           <SheetTitle>{meal ? mealTypeLabel(meal.mealType) : m.detail_items()}</SheetTitle>
           <SheetDescription>{meal ? formatTime(meal.time) : ''}</SheetDescription>

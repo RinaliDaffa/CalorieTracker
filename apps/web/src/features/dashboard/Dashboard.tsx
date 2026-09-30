@@ -2,21 +2,17 @@ import { greetingAt, mealTotals, sumNutrients, toDateKey } from '@nutrisnap/core
 import { Link } from '@tanstack/react-router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Camera, MessageCircle } from 'lucide-react';
-import { lazy, Suspense, useState } from 'react';
+import { useState } from 'react';
 import { mealsOn } from '@/db/meals';
 import { db } from '@/db/schema';
 import { currentTargets } from '@/db/targets';
+import { LazyMealDetailSheet } from '@/features/common/LazyMealDetailSheet';
 import { MealList } from '@/features/common/MealList';
 import { formatDateLong } from '@/lib/i18n';
 import { greetingLabel } from '@/lib/labels';
 import { m } from '@/paraglide/messages.js';
 import { CalorieRing } from './CalorieRing';
 import { MacroCards } from './MacroCards';
-
-// Loaded on first open so the dialog stack stays out of the initial route.
-const MealDetailSheet = lazy(() =>
-  import('@/features/common/MealDetailSheet').then((mod) => ({ default: mod.MealDetailSheet })),
-);
 
 const ACTION =
   'flex shrink-0 flex-col items-center gap-1.5 rounded-xl border bg-card px-4 py-3 text-sm font-medium hover:bg-muted/50';
@@ -26,7 +22,6 @@ export function Dashboard() {
   const meals = useLiveQuery(() => mealsOn(db, today), [today]);
   const targets = useLiveQuery(() => currentTargets(db, today), [today]);
   const [openMeal, setOpenMeal] = useState<string | null>(null);
-  const [sheetUsed, setSheetUsed] = useState(false);
 
   if (!meals || !targets) return null;
   const totals = sumNutrients(meals.map((meal) => mealTotals(meal.items)));
@@ -73,13 +68,7 @@ export function Dashboard() {
           </span>
         </div>
         {meals.length > 0 ? (
-          <MealList
-            meals={meals}
-            onOpen={(id) => {
-              setSheetUsed(true);
-              setOpenMeal(id);
-            }}
-          />
+          <MealList meals={meals} onOpen={setOpenMeal} />
         ) : (
           <div className="rounded-xl border border-dashed p-8 text-center">
             <p className="text-3xl" aria-hidden="true">
@@ -91,11 +80,7 @@ export function Dashboard() {
         )}
       </section>
 
-      {sheetUsed ? (
-        <Suspense fallback={null}>
-          <MealDetailSheet mealId={openMeal} onClose={() => setOpenMeal(null)} />
-        </Suspense>
-      ) : null}
+      <LazyMealDetailSheet mealId={openMeal} onClose={() => setOpenMeal(null)} />
     </div>
   );
 }

@@ -69,3 +69,14 @@ test('shows the meal photo in the detail sheet', async ({ page, browserName }) =
     page.getByRole('dialog').getByRole('img', { name: 'Photo of this meal' }),
   ).toBeVisible({ timeout: 15000 }); // lazy sheet chunk + blob decode can be slow under 8 workers
 });
+
+test('returns focus to the meal row when the detail sheet closes', async ({ page }) => {
+  await seed(page, { meals: [meal(todayKey(), 'lunch', [item('Soto ayam', 300)])] });
+  const row = page.getByRole('button', { name: /Soto ayam/ });
+  await row.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(row).toBeFocused();
+});
