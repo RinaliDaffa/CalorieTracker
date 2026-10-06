@@ -10,7 +10,8 @@
     "typecheck": "paraglide-js compile --project ./project.inlang --outdir ./src/paraglide --strategy localStorage preferredLanguage baseLocale && tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "e2e": "playwright test",
-    "budget": "node scripts/check-bundle.mjs"
+    "budget": "node scripts/check-bundle.mjs",
+    "lhci": "lhci autorun"
   },
   "dependencies": {
     "@nutrisnap/ai": "workspace:*",
@@ -33,6 +34,7 @@
     "@axe-core/playwright": "^4.13.0",
     "@inlang/paraglide-js": "^2.25.4",
     "@inlang/plugin-message-format": "^4.4.4",
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.63.0",
     "@rolldown/plugin-babel": "^0.2.4",
     "@tailwindcss/vite": "^4.3.3",
