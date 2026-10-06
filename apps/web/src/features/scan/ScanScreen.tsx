@@ -95,6 +95,8 @@ export function ScanScreen() {
     });
     setMealId(saved.id);
     setMode('result');
+    // A late second tap on Analyze must not re-log the same words once the first save is done.
+    if (request.kind === 'text') setDescription('');
     const photoLost = captured !== null && !saved.photoId;
     toast.success(photoLost ? m.saved_no_photo() : m.saved(), {
       action: { label: m.undo(), onClick: () => void softDeleteMeal(db, saved.id).then(reset) },

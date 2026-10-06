@@ -18,12 +18,18 @@ export async function expectNoSeriousA11yViolations(page: Page): Promise<void> {
   expect(serious, JSON.stringify(serious, null, 2)).toEqual([]);
 }
 
+/** Boot attaches the test handle asynchronously; after any navigation it is briefly missing. */
+async function waitForTestDb(page: Page): Promise<void> {
+  await page.waitForFunction(() => '__nutrisnap' in window, undefined, { timeout: 15_000 });
+}
+
 /** Test mode on, a stored key, onboarding done, dashboard open. */
 export async function completeOnboarding(page: Page): Promise<void> {
   await enableTestMode(page);
   await page.goto('/welcome');
   // Let the first boot finish rendering before seeding and navigating away.
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 15_000 });
+  await waitForTestDb(page);
   await page.evaluate(async () => {
     const { db } = (window as unknown as TestWindow).__nutrisnap;
     await db.settings.bulkPut([
@@ -39,6 +45,7 @@ export async function seed(
   page: Page,
   data: { meals?: MealRecord[]; favorites?: FavoriteRecord[]; chats?: ChatRecord[] },
 ): Promise<void> {
+  await waitForTestDb(page);
   await page.evaluate(async (records) => {
     const { db } = (window as unknown as TestWindow).__nutrisnap;
     if (records.meals) await db.meals.bulkPut(records.meals);

@@ -22,6 +22,8 @@ export function Chat() {
   const messages = useLiveQuery(() => recentChats(db), []);
   const [text, setText] = useState('');
   const [waiting, setWaiting] = useState(false);
+  // A ref, not state: two Enter presses in the same frame both see stale state.
+  const sending = useRef(false);
   const endRef = useRef<HTMLDivElement>(null);
 
   // Runs after every render: new messages and the typing indicator both need the view at the bottom.
@@ -31,11 +33,12 @@ export function Chat() {
 
   async function send(raw: string) {
     const message = raw.trim();
-    if (!message || waiting) return;
+    if (!message || sending.current) return;
     if (!apiKey.value) {
       toast.error(m.error_no_key());
       return;
     }
+    sending.current = true;
     setText('');
     setWaiting(true);
     await addChat(db, 'user', message);
@@ -50,6 +53,7 @@ export function Chat() {
     } catch (error) {
       toast.error(aiErrorMessage(error));
     } finally {
+      sending.current = false;
       setWaiting(false);
     }
   }
@@ -60,7 +64,8 @@ export function Chat() {
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-    if (event.key === 'Enter' && !event.shiftKey) {
+    // isComposing: Enter that confirms a predictive/IME word must not send the message.
+    if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
       event.preventDefault();
       void send(text);
     }

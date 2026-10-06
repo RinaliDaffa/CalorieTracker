@@ -1,5 +1,6 @@
 import { itemTotals, mealTotals } from '@nutrisnap/core';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { addFavorite } from '@/db/favorites';
 import { setMealType } from '@/db/meals';
@@ -13,13 +14,20 @@ import { m } from '@/paraglide/messages.js';
 
 export function ResultView({ mealId, onDone }: { mealId: string; onDone: () => void }) {
   const meal = useLiveQuery(() => db.meals.get(mealId), [mealId]);
+  // One favorite per result: a second tap would store a duplicate.
+  const [favorited, setFavorited] = useState(false);
   if (!meal || meal.deletedAt !== undefined) return null;
 
   async function saveFavorite() {
-    if (!meal) return;
+    if (!meal || favorited) return;
+    setFavorited(true);
     const name = meal.description || meal.items.map((i) => i.name).join(', ');
-    await addFavorite(db, name, meal.items);
-    toast.success(m.favorite_saved());
+    try {
+      await addFavorite(db, name, meal.items);
+      toast.success(m.favorite_saved());
+    } catch {
+      setFavorited(false);
+    }
   }
 
   return (
@@ -63,7 +71,7 @@ export function ResultView({ mealId, onDone }: { mealId: string; onDone: () => v
         <Button className="flex-1" onClick={onDone}>
           {m.done()}
         </Button>
-        <Button variant="secondary" onClick={() => void saveFavorite()}>
+        <Button variant="secondary" disabled={favorited} onClick={() => void saveFavorite()}>
           {m.add_favorite()}
         </Button>
       </div>

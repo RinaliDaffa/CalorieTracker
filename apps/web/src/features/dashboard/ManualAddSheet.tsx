@@ -35,6 +35,12 @@ export function ManualAddSheet({
   const [text, setText] = useState('');
   const [mealType, setMealType] = useState<MealType>(() => mealTypeAt(new Date()));
   const [busy, setBusy] = useState(false);
+  // The sheet stays mounted after first use, so re-derive the meal type from the clock on each open.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setMealType(mealTypeAt(new Date()));
+  }
 
   async function submit(event: FormEvent) {
     event.preventDefault();

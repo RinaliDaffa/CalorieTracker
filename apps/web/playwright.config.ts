@@ -8,6 +8,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
+  // Locally the default (half the cores) runs ~8 browsers at once; Firefox then starves and
+  // mocked AI replies miss their 5 s waits. Four is faster overall and deterministic.
+  workers: process.env.CI ? undefined : 4,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL: 'http://localhost:4173',
