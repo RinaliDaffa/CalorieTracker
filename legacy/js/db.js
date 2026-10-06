@@ -317,6 +317,40 @@ export async function exportToCSV() {
   return csvContent;
 }
 
+// ── Export for the new app ──
+// Same shape the new app's importer reads. The API key is left out: it is
+// re-entered once in the new app rather than written to a file.
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+export async function exportForNewApp() {
+  const stores = ['meals', 'photos', 'goals', 'settings', 'favorites', 'chats'];
+  const [meals, photos, goals, settings, favorites, chats] = await Promise.all(stores.map(dbGetAll));
+  const photoEntries = [];
+  for (const photo of photos) {
+    if (photo.blob instanceof Blob) {
+      photoEntries.push({ mealId: photo.mealId, timestamp: photo.timestamp, dataUrl: await blobToDataUrl(photo.blob) });
+    }
+  }
+  return JSON.stringify({
+    format: 'nutrisnap-legacy',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    meals,
+    photos: photoEntries,
+    goals,
+    settings: settings.filter((s) => s.key !== 'apiKey'),
+    favorites,
+    chats
+  });
+}
+
 // ── Request Persistent Storage (iOS) ──
 export async function requestPersistentStorage() {
   if (navigator.storage && navigator.storage.persist) {

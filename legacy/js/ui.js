@@ -676,6 +676,13 @@ export function renderSettingsView(settings, goals) {
           </div>
           <div class="settings-item" style="border: none;">
             <div>
+              <div class="settings-item-label">Move to the new NutriSnap</div>
+              <div class="settings-item-desc">Download everything, photos included, as a file the new app can import</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="btn-export-json">📦 Export JSON</button>
+          </div>
+          <div class="settings-item" style="border: none;">
+            <div>
               <div class="settings-item-label">Storage Used</div>
               <div class="settings-item-desc">Photos, meals and your API key on this device. "Evictable" means iOS may clear it after about a week unused — install to the Home Screen to keep it.</div>
             </div>

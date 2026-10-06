@@ -7,7 +7,7 @@ import { initDB, saveMeal, getMealsByDate, getAllMeals, getMeal, deleteMeal as d
          getGoals, saveGoals, getSetting, saveSetting, getAllSettings,
          saveFavorite, getFavorites, deleteFavorite,
          saveChatMessage, getChatHistory, clearChatHistory,
-         exportToCSV, getMealPhoto, requestPersistentStorage } from './db.js';
+         exportToCSV, exportForNewApp, getMealPhoto, requestPersistentStorage } from './db.js';
 import { setApiKey, analyzeFood, analyzeFoodByText, chatWithAI, validateApiKey, setModel, getModel } from './gemini.js';
 import { startCamera, stopCamera, capturePhoto, processImageFile, isCameraAvailable } from './camera.js';
 import { renderDashboard, renderScanView, renderHistoryView, renderChatView,
@@ -690,6 +690,22 @@ function setupSettingsHandlers() {
       a.click();
       URL.revokeObjectURL(url);
       showToast('Data exported ✓', 'success');
+    } catch (err) {
+      showToast('Export failed', 'error');
+    }
+  });
+
+  // Export for the new app
+  document.getElementById('btn-export-json')?.addEventListener('click', async () => {
+    try {
+      const json = await exportForNewApp();
+      const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `nutrisnap-legacy-${getToday()}.json`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      showToast('Export ready ✓', 'success');
     } catch (err) {
       showToast('Export failed', 'error');
     }
