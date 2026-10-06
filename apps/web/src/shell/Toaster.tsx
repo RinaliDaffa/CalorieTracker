@@ -1,6 +1,9 @@
-import { lazy, Suspense } from 'react';
+import { type ComponentType, lazy, Suspense } from 'react';
 
-const SonnerToaster = lazy(() => import('./SonnerToaster').catch(() => ({ default: () => null })));
+// A chunk that fails to load loses toasts, not the whole shell.
+const SonnerToaster = lazy<ComponentType>(() =>
+  import('./SonnerToaster').catch(() => ({ default: () => null })),
+);
 
 export function Toaster() {
   return (
