@@ -1,4 +1,5 @@
 import { Outlet } from '@tanstack/react-router';
+import { LazyUpdatePrompt } from './LazyUpdatePrompt';
 import { Toaster } from './Toaster';
 import { useLegacyNotice } from './useLegacyNotice';
 
@@ -11,6 +12,7 @@ export function RootLayout() {
     <>
       <Outlet />
       <Toaster />
+      <LazyUpdatePrompt />
     </>
   );
 }
