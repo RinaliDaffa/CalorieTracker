@@ -8,7 +8,7 @@ import { ThemeSection } from './ThemeSection';
 export function Settings() {
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold">{m.title_settings()}</h1>
+      <h1 className="text-3xl font-extrabold">{m.title_settings()}</h1>
       <LanguageSection />
       <ThemeSection />
       <KeySection />

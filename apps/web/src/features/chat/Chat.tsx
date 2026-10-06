@@ -1,6 +1,6 @@
 import { chatReply } from '@nutrisnap/ai';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { SendHorizontal } from 'lucide-react';
+import { SendHorizontal, Sparkles } from 'lucide-react';
 import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { gemini } from '@/ai/client';
 import { aiErrorMessage } from '@/ai/messages';
@@ -10,6 +10,7 @@ import { addChat, recentChats } from '@/db/chats';
 import { useSetting } from '@/db/hooks';
 import { db } from '@/db/schema';
 import { AddKeyPrompt } from '@/features/common/AddKeyPrompt';
+import { BrandMark } from '@/features/common/BrandMark';
 import { aiLang, formatTime } from '@/lib/i18n';
 import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
@@ -79,7 +80,10 @@ export function Chat() {
 
   return (
     <div className="flex min-h-[calc(100dvh-8rem)] flex-col gap-4">
-      <h1 className="text-2xl font-bold">{m.title_chat()}</h1>
+      <h1 className="flex items-center gap-2.5 text-3xl font-extrabold">
+        <BrandMark className="size-9" />
+        {m.title_chat()}
+      </h1>
       {apiKey.loaded && !apiKey.value ? <AddKeyPrompt /> : null}
 
       <div
@@ -89,17 +93,18 @@ export function Chat() {
         className="flex-1 space-y-3"
       >
         {messages && messages.length === 0 && !waiting ? (
-          <div className="space-y-3 py-6 text-center">
-            <p className="text-4xl" aria-hidden="true">
-              🤖
+          <div className="space-y-4 rounded-3xl border border-dashed px-5 py-8 text-center">
+            <p className="flex justify-center" aria-hidden="true">
+              <Sparkles className="size-8 text-primary" />
             </p>
             <p className="mx-auto max-w-xs text-sm text-muted-foreground">{m.chat_intro()}</p>
-            <div className="mx-auto flex max-w-xs flex-col gap-2">
+            <div className="flex flex-wrap justify-center gap-2">
               {suggestions.map(([label, message]) => (
                 <Button
                   key={label}
                   variant="secondary"
                   size="sm"
+                  className="rounded-full"
                   onClick={() => void send(message)}
                 >
                   {label}
@@ -113,20 +118,25 @@ export function Chat() {
             key={message.id}
             data-role={message.role}
             className={cn(
-              'max-w-[85%] rounded-2xl px-4 py-2.5 text-sm',
+              'max-w-[85%] rounded-3xl px-4 py-3 text-sm leading-relaxed shadow-card',
               message.role === 'user'
-                ? 'ml-auto bg-primary text-primary-foreground'
-                : 'border bg-card',
+                ? 'ml-auto rounded-br-lg bg-primary text-primary-foreground'
+                : 'rounded-bl-lg border bg-card',
             )}
           >
             <ChatMarkdown text={message.content} />
-            <span className="mt-1 block text-right text-[11px]">
+            <span className="mt-1 block text-right text-[11px] opacity-75">
               {formatTime(message.createdAt)}
             </span>
           </div>
         ))}
         {waiting ? (
-          <p role="status" className="text-sm text-muted-foreground">
+          <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span aria-hidden="true" className="flex gap-1">
+              <span className="size-1.5 animate-pulse rounded-full bg-primary" />
+              <span className="size-1.5 animate-pulse rounded-full bg-primary [animation-delay:150ms]" />
+              <span className="size-1.5 animate-pulse rounded-full bg-primary [animation-delay:300ms]" />
+            </span>
             {m.chat_typing()}
           </p>
         ) : null}
@@ -135,7 +145,7 @@ export function Chat() {
 
       <form
         onSubmit={onSubmit}
-        className="sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom))] flex gap-2 bg-background py-2 lg:bottom-0"
+        className="sticky bottom-[calc(5.75rem+env(safe-area-inset-bottom))] flex items-end gap-2 rounded-3xl border bg-card p-2 shadow-card focus-within:ring-2 focus-within:ring-ring lg:bottom-4"
       >
         <Textarea
           aria-label={m.chat_input_label()}
@@ -144,12 +154,12 @@ export function Chat() {
           onChange={(e) => setText(e.target.value)}
           onKeyDown={onKeyDown}
           placeholder={m.chat_placeholder()}
-          className="min-h-11 resize-none"
+          className="max-h-32 min-h-11 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0"
         />
         <Button
           type="submit"
           size="icon"
-          className="size-11 shrink-0"
+          className="size-11 shrink-0 rounded-full"
           aria-label={m.chat_send()}
           disabled={waiting}
         >

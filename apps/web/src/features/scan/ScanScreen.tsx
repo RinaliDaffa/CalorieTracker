@@ -177,34 +177,47 @@ export function ScanScreen() {
 
   return (
     <div className="space-y-4">
-      <header className="text-center">
-        <h1 className="text-2xl font-bold">{m.title_scan()}</h1>
+      <header className="space-y-1">
+        <h1 className="text-3xl font-extrabold">{m.title_scan()}</h1>
         <p className="text-sm text-muted-foreground">{m.scan_subtitle()}</p>
       </header>
 
       {apiKey.loaded && !apiKey.value ? <AddKeyPrompt /> : null}
 
-      <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border bg-muted">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-3xl border bg-[radial-gradient(circle_at_50%_40%,var(--muted),var(--card))] shadow-card">
         {mode === 'camera' ? (
           <video ref={videoRef} className="size-full object-cover" playsInline muted autoPlay />
         ) : previewUrl ? (
           <img src={previewUrl} alt={m.meal_photo_alt()} className="size-full object-cover" />
         ) : (
-          <div className="grid size-full place-items-center text-sm text-muted-foreground">
+          <div className="flex size-full flex-col items-center justify-center gap-3 px-6 text-center text-sm text-muted-foreground">
+            <span className="grid size-14 place-items-center rounded-full bg-accent text-accent-foreground">
+              <Camera className="size-6" />
+            </span>
             {m.scan_start_hint()}
           </div>
         )}
+        {/* Viewfinder corners: frame the plate, not the table. */}
+        <span aria-hidden="true" className="pointer-events-none absolute inset-5">
+          <span className="absolute top-0 left-0 size-7 rounded-tl-xl border-t-[3px] border-l-[3px] border-primary/80" />
+          <span className="absolute top-0 right-0 size-7 rounded-tr-xl border-t-[3px] border-r-[3px] border-primary/80" />
+          <span className="absolute bottom-0 left-0 size-7 rounded-bl-xl border-b-[3px] border-l-[3px] border-primary/80" />
+          <span className="absolute right-0 bottom-0 size-7 rounded-br-xl border-r-[3px] border-b-[3px] border-primary/80" />
+        </span>
         {busy ? (
-          <div role="status" className="absolute inset-0 grid place-items-center bg-background/70">
-            <span className="flex items-center gap-2 text-sm font-medium">
-              <Loader2 className="size-4 animate-spin" />
+          <div
+            role="status"
+            className="absolute inset-0 grid place-items-center bg-background/75 backdrop-blur-sm"
+          >
+            <span className="flex items-center gap-2 rounded-full bg-card px-4 py-2 text-sm font-semibold shadow-card">
+              <Loader2 className="size-4 animate-spin text-primary" />
               {m.analyzing()}
             </span>
           </div>
         ) : null}
       </div>
 
-      <div className="flex items-center justify-center gap-6">
+      <div className="flex items-center justify-center gap-8">
         <Button
           variant="secondary"
           size="icon"
@@ -217,7 +230,7 @@ export function ScanScreen() {
         </Button>
         <Button
           size="icon"
-          className="size-16 rounded-full"
+          className="size-[4.5rem] rounded-full shadow-[0_10px_24px_-8px] shadow-primary/60 ring-4 ring-primary/20"
           aria-label={mode === 'camera' ? m.scan_capture() : m.scan_start_camera()}
           disabled={busy}
           onClick={() => void guarded(onCapture)}
@@ -245,7 +258,10 @@ export function ScanScreen() {
       </div>
 
       {mode === 'failed' && error ? (
-        <div role="alert" className="rounded-xl border border-destructive/40 bg-card p-4 text-sm">
+        <div
+          role="alert"
+          className="rounded-2xl border border-destructive/40 bg-card p-4 text-sm shadow-card"
+        >
           <p className="font-semibold">{m.analysis_failed_title()}</p>
           <p className="mt-1">{error}</p>
           <div className="mt-3 flex gap-2">
@@ -269,8 +285,13 @@ export function ScanScreen() {
         <ResultView mealId={mealId} onDone={() => void navigate({ to: '/' })} />
       ) : null}
 
-      <form onSubmit={onDescribe} className="space-y-2 rounded-xl border bg-card p-4">
-        <Label htmlFor="describe">{m.describe_title()}</Label>
+      <form
+        onSubmit={onDescribe}
+        className="space-y-3 rounded-3xl border bg-card p-4 shadow-card sm:p-5"
+      >
+        <Label htmlFor="describe" className="font-display text-base font-bold">
+          {m.describe_title()}
+        </Label>
         <Textarea
           id="describe"
           ref={describeRef}

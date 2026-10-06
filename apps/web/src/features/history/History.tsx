@@ -66,7 +66,7 @@ export function History() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">{m.title_history()}</h1>
+      <h1 className="text-3xl font-extrabold">{m.title_history()}</h1>
       <MonthCalendar
         year={view.year}
         month0={view.month0}
@@ -77,41 +77,52 @@ export function History() {
         onShift={shift}
       />
 
-      <section aria-labelledby="day-summary" className="rounded-xl border bg-card p-4">
-        <h2 id="day-summary" className="mb-3 font-semibold">
+      <section
+        aria-labelledby="day-summary"
+        className="rounded-3xl border bg-card p-4 shadow-card sm:p-5"
+      >
+        <h2 id="day-summary" className="mb-3 text-lg font-bold">
           {formatDateLong(selected)}
         </h2>
         {dayMeals.length > 0 ? (
-          <dl
-            className="grid grid-cols-2 gap-3 text-center sm:grid-cols-5"
-            data-testid="day-summary"
-          >
-            <div>
-              <dt className="text-xs text-muted-foreground">{nutrientLabel('calories')}</dt>
-              <dd className="text-2xl font-bold tabular-nums">
+          <dl className="grid grid-cols-2 gap-2.5 sm:grid-cols-5" data-testid="day-summary">
+            <div className="col-span-2 rounded-2xl bg-accent p-3 text-accent-foreground sm:col-span-1">
+              <dt className="text-xs font-medium">{nutrientLabel('calories')}</dt>
+              <dd className="font-display text-2xl font-bold tabular-nums">
                 {formatNumber(dayTotals.calories)}
+                <span className="ml-1 font-sans text-xs font-medium">{m.unit_kcal()}</span>
               </dd>
             </div>
-            <div>
-              <dt className="text-xs text-muted-foreground">{m.history_meals_logged()}</dt>
-              <dd className="text-2xl font-bold tabular-nums">{dayMeals.length}</dd>
+            <div className="rounded-2xl bg-muted p-3">
+              <dt className="text-xs font-medium text-muted-foreground">
+                {m.history_meals_logged()}
+              </dt>
+              <dd className="font-display text-2xl font-bold tabular-nums">{dayMeals.length}</dd>
             </div>
             {(['protein', 'carbs', 'fat'] as const).map((key) => (
-              <div key={key}>
-                <dt className="text-xs text-muted-foreground">{nutrientLabel(key)}</dt>
-                <dd className="font-semibold tabular-nums">
-                  {formatNumber(dayTotals[key])} {m.unit_g()}
+              <div key={key} className="rounded-2xl bg-muted p-3">
+                <dt className="text-xs font-medium text-muted-foreground">{nutrientLabel(key)}</dt>
+                <dd className="text-lg font-bold tabular-nums">
+                  {formatNumber(dayTotals[key])}
+                  <span className="ml-0.5 text-xs font-medium text-muted-foreground">
+                    {m.unit_g()}
+                  </span>
                 </dd>
               </div>
             ))}
           </dl>
         ) : (
-          <p className="text-sm text-muted-foreground">{m.history_empty()}</p>
+          <p className="rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+            {m.history_empty()}
+          </p>
         )}
       </section>
 
-      <section aria-labelledby="weekly" className="rounded-xl border bg-card p-4">
-        <h2 id="weekly" className="mb-3 font-semibold">
+      <section
+        aria-labelledby="weekly"
+        className="rounded-3xl border bg-card p-4 shadow-card sm:p-5"
+      >
+        <h2 id="weekly" className="mb-3 text-lg font-bold">
           {m.history_weekly()}
         </h2>
         <WeeklyChart days={weekDays} goal={targets.calories} today={today} />

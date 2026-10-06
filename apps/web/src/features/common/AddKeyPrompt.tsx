@@ -3,7 +3,7 @@ import { m } from '@/paraglide/messages.js';
 
 export function AddKeyPrompt() {
   return (
-    <div className="rounded-xl border bg-accent p-4 text-accent-foreground">
+    <div className="rounded-2xl border border-primary/30 bg-accent p-4 text-accent-foreground">
       <p className="font-semibold">{m.add_key_title()}</p>
       <p className="text-sm">{m.add_key_body()}</p>
       <Link

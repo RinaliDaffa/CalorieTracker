@@ -10,11 +10,11 @@ export function MealThumb({ meal }: { meal: MealRecord }) {
     [meal.photoId],
   );
   const url = useObjectUrl(photo?.thumb);
-  if (url) return <img src={url} alt="" className="size-12 shrink-0 rounded-lg object-cover" />;
+  if (url) return <img src={url} alt="" className="size-14 shrink-0 rounded-xl object-cover" />;
   return (
     <span
       aria-hidden="true"
-      className="grid size-12 shrink-0 place-items-center rounded-lg bg-muted text-xl"
+      className="grid size-14 shrink-0 place-items-center rounded-xl bg-accent text-2xl"
     >
       {ICON[meal.mealType] ?? '🍽️'}
     </span>

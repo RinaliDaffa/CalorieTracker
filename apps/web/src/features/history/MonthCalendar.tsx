@@ -18,7 +18,7 @@ interface Props {
 export function MonthCalendar({ year, month0, selected, today, logged, onSelect, onShift }: Props) {
   const cells = monthGrid(year, month0);
   return (
-    <div className="rounded-xl border bg-card p-3">
+    <div className="rounded-3xl border bg-card p-3 shadow-card sm:p-4">
       <div className="mb-2 flex items-center justify-between">
         <Button
           variant="ghost"
@@ -28,7 +28,7 @@ export function MonthCalendar({ year, month0, selected, today, logged, onSelect,
         >
           <ChevronLeft className="size-4" />
         </Button>
-        <h2 className="font-semibold" aria-live="polite">
+        <h2 className="text-lg font-bold" aria-live="polite">
           {formatMonth(year, month0)}
         </h2>
         <Button
@@ -62,10 +62,14 @@ export function MonthCalendar({ year, month0, selected, today, logged, onSelect,
               aria-label={isLogged ? m.day_logged({ date: label }) : label}
               data-logged={isLogged ? 'true' : undefined}
               className={cn(
-                'relative aspect-square rounded-lg text-sm tabular-nums',
+                'relative aspect-square rounded-xl text-sm font-medium tabular-nums transition-colors',
                 !cell.inMonth && 'text-muted-foreground',
-                isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
-                cell.key === today && !isSelected && 'ring-1 ring-primary',
+                isSelected
+                  ? 'bg-primary font-bold text-primary-foreground shadow-sm'
+                  : isLogged
+                    ? 'bg-accent/60 hover:bg-accent'
+                    : 'hover:bg-muted',
+                cell.key === today && !isSelected && 'ring-2 ring-primary ring-inset',
               )}
             >
               {cell.day}

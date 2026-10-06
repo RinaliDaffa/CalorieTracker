@@ -36,10 +36,14 @@ export function KeySection() {
 
   return (
     <section aria-labelledby="settings-ai" className="space-y-2">
-      <h2 id="settings-ai" className="font-semibold">
+      <h2 id="settings-ai" className="text-lg font-bold">
         {m.settings_ai()}
       </h2>
-      <form onSubmit={save} className="space-y-2 rounded-xl border bg-card p-4" noValidate>
+      <form
+        onSubmit={save}
+        className="space-y-2 rounded-3xl border bg-card shadow-card p-4"
+        noValidate
+      >
         <Label htmlFor="settings-key">{m.welcome_key_label()}</Label>
         <div className="flex gap-2">
           <Input

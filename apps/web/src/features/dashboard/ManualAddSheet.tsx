@@ -75,7 +75,7 @@ export function ManualAddSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="rounded-t-2xl"
+        className="max-h-[90dvh] overflow-y-auto"
         onOpenAutoFocus={() => {
           opener.current =
             document.activeElement instanceof HTMLElement ? document.activeElement : null;

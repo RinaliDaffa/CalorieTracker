@@ -12,7 +12,7 @@ export function ThemeSection() {
   ];
   return (
     <section aria-labelledby="settings-theme" className="space-y-2">
-      <h2 id="settings-theme" className="font-semibold">
+      <h2 id="settings-theme" className="text-lg font-bold">
         {m.settings_theme()}
       </h2>
       <ToggleGroup

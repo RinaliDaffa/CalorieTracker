@@ -12,22 +12,26 @@ const DOT: Record<keyof Nutrients, string> = {
   sugar: 'bg-sugar',
 };
 
+/** Still a real table for screen readers; laid out as a grid of chips. */
 export function NutritionTable({ totals }: { totals: Nutrients }) {
   return (
-    <table className="w-full text-sm">
+    <table className="block w-full text-sm">
       <caption className="sr-only">{m.total_nutrition()}</caption>
-      <tbody className="divide-y">
+      <tbody className="grid grid-cols-3 gap-2">
         {NUTRIENT_KEYS.map((key) => (
-          <tr key={key}>
-            <th scope="row" className="py-1.5 text-left font-normal">
-              <span
-                className={`mr-2 inline-block size-2 rounded-full ${DOT[key]}`}
-                aria-hidden="true"
-              />
+          <tr key={key} className="flex flex-col rounded-xl bg-muted px-3 py-2">
+            <th
+              scope="row"
+              className="flex items-center gap-1.5 text-left text-[11px] font-medium text-muted-foreground"
+            >
+              <span className={`size-1.5 rounded-full ${DOT[key]}`} aria-hidden="true" />
               {nutrientLabel(key)}
             </th>
-            <td className="py-1.5 text-right tabular-nums">
-              {formatNumber(totals[key])} {key === 'calories' ? m.unit_kcal() : m.unit_g()}
+            <td className="font-semibold tabular-nums">
+              {formatNumber(totals[key])}{' '}
+              <span className="text-xs font-normal text-muted-foreground">
+                {key === 'calories' ? m.unit_kcal() : m.unit_g()}
+              </span>
             </td>
           </tr>
         ))}

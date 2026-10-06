@@ -11,3 +11,4 @@ apps/web/src/paraglide/
 playwright-report/
 test-results/
 .lighthouseci/
+.playwright-mcp/

@@ -6,17 +6,20 @@ import { useState } from 'react';
 import { mealsOn } from '@/db/meals';
 import { db } from '@/db/schema';
 import { currentTargets } from '@/db/targets';
+import { EmptyPlate } from '@/features/common/EmptyPlate';
 import { LazyMealDetailSheet } from '@/features/common/LazyMealDetailSheet';
 import { MealList } from '@/features/common/MealList';
 import { formatDateLong } from '@/lib/i18n';
 import { greetingLabel } from '@/lib/labels';
+import { cn } from '@/lib/utils';
 import { m } from '@/paraglide/messages.js';
 import { CalorieRing } from './CalorieRing';
 import { LazyFavoritesSheet, LazyManualAddSheet } from './LazySheets';
 import { MacroCards } from './MacroCards';
 
 const ACTION =
-  'flex shrink-0 flex-col items-center gap-1.5 rounded-xl border bg-card px-4 py-3 text-sm font-medium hover:bg-muted/50';
+  'flex h-full w-full flex-col items-center justify-center gap-1.5 rounded-2xl border bg-card px-1 py-3 text-center text-xs leading-tight font-semibold shadow-card transition-[transform,background-color] hover:bg-muted active:scale-[0.97] sm:text-sm';
+const ICON = 'grid size-9 place-items-center rounded-full bg-muted text-foreground';
 
 export function Dashboard() {
   const today = toDateKey(new Date());
@@ -31,42 +34,61 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold">{greetingLabel(greetingAt(new Date()))} 👋</h1>
-        <p className="text-sm text-muted-foreground">
+      <header className="space-y-1">
+        <p className="text-sm font-medium text-muted-foreground">
           {m.dashboard_subtitle({ date: formatDateLong(today) })}
         </p>
+        <h1 className="text-3xl font-extrabold">
+          {greetingLabel(greetingAt(new Date()))}{' '}
+          <span aria-hidden="true" className="inline-block origin-[70%_70%]">
+            👋
+          </span>
+        </h1>
       </header>
 
       <CalorieRing eaten={totals.calories} target={targets.calories} />
       <MacroCards totals={totals} targets={targets} />
 
       <section aria-labelledby="quick-add">
-        <h2 id="quick-add" className="mb-2 font-semibold">
+        <h2 id="quick-add" className="mb-3 text-lg font-bold">
           {m.quick_add()}
         </h2>
-        <ul className="flex gap-3 overflow-x-auto pb-1" data-testid="quick-actions">
+        <ul className="grid grid-cols-4 gap-2.5 sm:gap-3" data-testid="quick-actions">
           <li>
-            <Link to="/scan" className={ACTION}>
-              <Camera className="size-5" />
+            <Link
+              to="/scan"
+              className={cn(
+                ACTION,
+                'border-primary bg-primary text-primary-foreground hover:bg-primary/90',
+              )}
+            >
+              <span className={cn(ICON, 'bg-primary-foreground/15 text-primary-foreground')}>
+                <Camera className="size-5" />
+              </span>
               {m.action_scan()}
             </Link>
           </li>
           <li>
             <button type="button" className={ACTION} onClick={() => setManualOpen(true)}>
-              <PencilLine className="size-5" />
+              <span className={ICON}>
+                <PencilLine className="size-5" />
+              </span>
               {m.action_type()}
             </button>
           </li>
           <li>
             <button type="button" className={ACTION} onClick={() => setFavoritesOpen(true)}>
-              <Star className="size-5" />
+              <span className={ICON}>
+                <Star className="size-5" />
+              </span>
               {m.action_favorites()}
             </button>
           </li>
           <li>
             <Link to="/chat" className={ACTION}>
-              <MessageCircle className="size-5" />
+              <span className={ICON}>
+                <MessageCircle className="size-5" />
+              </span>
               {m.action_ask()}
             </Link>
           </li>
@@ -74,8 +96,8 @@ export function Dashboard() {
       </section>
 
       <section aria-labelledby="todays-meals">
-        <div className="mb-2 flex items-baseline justify-between">
-          <h2 id="todays-meals" className="font-semibold">
+        <div className="mb-3 flex items-baseline justify-between">
+          <h2 id="todays-meals" className="text-lg font-bold">
             {m.todays_meals()}
           </h2>
           <span className="text-sm text-muted-foreground">
@@ -85,12 +107,10 @@ export function Dashboard() {
         {meals.length > 0 ? (
           <MealList meals={meals} onOpen={setOpenMeal} />
         ) : (
-          <div className="rounded-xl border border-dashed p-8 text-center">
-            <p className="text-3xl" aria-hidden="true">
-              🍽️
-            </p>
-            <p className="font-semibold">{m.empty_meals_title()}</p>
-            <p className="text-sm text-muted-foreground">{m.empty_meals_body()}</p>
+          <div className="flex flex-col items-center gap-2 rounded-3xl border border-dashed bg-card/50 px-6 py-10 text-center">
+            <EmptyPlate />
+            <p className="mt-2 font-display text-lg font-bold">{m.empty_meals_title()}</p>
+            <p className="max-w-xs text-sm text-muted-foreground">{m.empty_meals_body()}</p>
           </div>
         )}
       </section>

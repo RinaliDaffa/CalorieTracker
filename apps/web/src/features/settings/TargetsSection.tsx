@@ -43,7 +43,11 @@ function TargetsForm({ initial }: { initial: Targets }) {
   }
 
   return (
-    <form onSubmit={save} className="space-y-3 rounded-xl border bg-card p-4" noValidate>
+    <form
+      onSubmit={save}
+      className="space-y-3 rounded-3xl border bg-card shadow-card p-4"
+      noValidate
+    >
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {NUTRIENT_KEYS.map((key) => (
           <div key={key} className="space-y-1">
@@ -80,7 +84,7 @@ export function TargetsSection() {
   const targets = useLiveQuery(() => currentTargets(db, today), [today]);
   return (
     <section aria-labelledby="settings-targets" className="space-y-2">
-      <h2 id="settings-targets" className="font-semibold">
+      <h2 id="settings-targets" className="text-lg font-bold">
         {m.settings_targets()}
       </h2>
       {/* Keyed by the stored values so the form resets when they change elsewhere. */}

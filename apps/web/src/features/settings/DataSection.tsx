@@ -23,7 +23,7 @@ function Row({
   action: ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-3">
+    <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
       <div>
         <p className="font-medium">{title}</p>
         <p className="text-sm text-muted-foreground">{description}</p>
@@ -86,10 +86,10 @@ export function DataSection() {
 
   return (
     <section aria-labelledby="settings-data" className="space-y-2">
-      <h2 id="settings-data" className="font-semibold">
+      <h2 id="settings-data" className="text-lg font-bold">
         {m.settings_data()}
       </h2>
-      <div className="divide-y rounded-xl border bg-card px-4">
+      <div className="divide-y rounded-3xl border bg-card shadow-card px-4">
         <Row
           title={m.export_csv()}
           description={m.export_csv_desc()}
@@ -132,7 +132,7 @@ export function DataSection() {
           description={m.storage_desc()}
           action={
             <span
-              className="text-right text-sm text-muted-foreground"
+              className="text-sm text-muted-foreground sm:text-right"
               data-testid="storage-estimate"
             >
               {storage}

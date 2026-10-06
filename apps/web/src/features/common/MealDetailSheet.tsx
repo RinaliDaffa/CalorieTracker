@@ -1,5 +1,5 @@
-import { itemTotals, mealTotals } from '@nutrisnap/core';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { Trash2 } from 'lucide-react';
 import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,13 +11,12 @@ import {
 } from '@/components/ui/sheet';
 import { getMealWithPhoto, restoreMeal, softDeleteMeal } from '@/db/meals';
 import { db } from '@/db/schema';
-import { formatNumber, formatTime } from '@/lib/i18n';
+import { formatTime } from '@/lib/i18n';
 import { mealTypeLabel } from '@/lib/labels';
 import { toast } from '@/lib/toast';
 import { useObjectUrl } from '@/lib/use-object-url';
 import { m } from '@/paraglide/messages.js';
-import { HealthBadge } from './HealthBadge';
-import { NutritionTable } from './NutritionTable';
+import { MealReceipt } from './MealReceipt';
 
 export function MealDetailSheet({
   mealId,
@@ -44,7 +43,7 @@ export function MealDetailSheet({
     <Sheet open={mealId !== null} onOpenChange={(open) => (open ? undefined : onClose())}>
       <SheetContent
         side="bottom"
-        className="max-h-[90dvh] overflow-y-auto rounded-t-2xl"
+        className="max-h-[92dvh] overflow-y-auto"
         onOpenAutoFocus={() => {
           opener.current =
             document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -63,50 +62,27 @@ export function MealDetailSheet({
           <SheetDescription>{meal ? formatTime(meal.time) : ''}</SheetDescription>
         </SheetHeader>
         {meal ? (
-          <div className="space-y-4 px-4 pb-6">
+          <div className="space-y-4 px-4 pb-6 sm:px-6">
             {photoUrl ? (
               <img
                 src={photoUrl}
                 alt={m.meal_photo_alt()}
-                className="max-h-56 w-full rounded-xl object-cover"
+                className="max-h-60 w-full rounded-2xl object-cover"
               />
             ) : null}
-            {typeof meal.healthScore === 'number' ? <HealthBadge score={meal.healthScore} /> : null}
-            <section aria-labelledby="detail-items">
-              <h3 id="detail-items" className="mb-1 font-semibold">
+            <section aria-labelledby="detail-items" className="space-y-2">
+              <h3 id="detail-items" className="sr-only">
                 {m.detail_items()}
               </h3>
-              <ul className="divide-y">
-                {meal.items.map((item, index) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: items have no id and never reorder
-                  <li key={index} className="flex items-center justify-between gap-3 py-2">
-                    <span>
-                      <span className="block">{item.name}</span>
-                      {item.servingText ? (
-                        <span className="block text-xs text-muted-foreground">
-                          {item.servingText}
-                        </span>
-                      ) : null}
-                    </span>
-                    <span className="tabular-nums">
-                      {formatNumber(itemTotals(item).calories)} {m.unit_kcal()}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              <MealReceipt items={meal.items} healthScore={meal.healthScore} tip={meal.tip} />
             </section>
-            <NutritionTable totals={mealTotals(meal.items)} />
-            {meal.tip ? (
-              <p className="rounded-lg bg-accent p-3 text-sm text-accent-foreground">
-                💡 {meal.tip}
-              </p>
-            ) : null}
             <div className="flex gap-2">
-              <Button variant="destructive" className="flex-1" onClick={() => void remove(meal.id)}>
-                {m.detail_delete()}
-              </Button>
-              <Button variant="secondary" className="flex-1" onClick={onClose}>
+              <Button variant="secondary" size="lg" className="flex-1" onClick={onClose}>
                 {m.close()}
+              </Button>
+              <Button variant="destructive" size="lg" onClick={() => void remove(meal.id)}>
+                <Trash2 />
+                {m.detail_delete()}
               </Button>
             </div>
           </div>

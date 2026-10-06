@@ -1,5 +1,6 @@
 import { checkApiKey } from '@nutrisnap/ai';
 import { useNavigate } from '@tanstack/react-router';
+import { Gift, ShieldCheck, Zap } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { fetchTransport } from '@/ai/client';
 import { saveApiKey } from '@/ai/key';
@@ -8,9 +9,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { db } from '@/db/schema';
 import { setSetting } from '@/db/settings';
+import { BrandMark } from '@/features/common/BrandMark';
 import { m } from '@/paraglide/messages.js';
 
 type Status = 'idle' | 'checking' | 'invalid' | 'unreachable' | 'empty';
+
+const POINTS = [
+  { icon: Zap, text: () => m.welcome_point_fast() },
+  { icon: ShieldCheck, text: () => m.welcome_point_private() },
+  { icon: Gift, text: () => m.welcome_point_free() },
+];
 
 function statusMessage(status: Status): string | null {
   if (status === 'invalid') return m.key_invalid();
@@ -49,12 +57,31 @@ export function Onboarding() {
   const error = statusMessage(status);
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 px-6 py-10">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold">{m.welcome_title()}</h1>
+    <main className="relative mx-auto flex min-h-dvh max-w-md animate-rise flex-col justify-center gap-7 overflow-hidden px-6 py-10">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-32 left-1/2 size-96 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl"
+      />
+      <div className="relative space-y-4">
+        <BrandMark className="size-14" />
+        <h1 className="text-4xl leading-[1.05] font-extrabold text-balance">{m.welcome_title()}</h1>
         <p className="text-muted-foreground">{m.welcome_body()}</p>
+        <ul className="space-y-2.5 pt-1 text-sm font-medium">
+          {POINTS.map(({ icon: Icon, text }) => (
+            <li key={text()} className="flex items-center gap-3">
+              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-accent text-accent-foreground">
+                <Icon className="size-4" />
+              </span>
+              {text()}
+            </li>
+          ))}
+        </ul>
       </div>
-      <form onSubmit={save} className="space-y-3" noValidate>
+      <form
+        onSubmit={save}
+        className="relative space-y-3 rounded-3xl border bg-card p-5 shadow-card"
+        noValidate
+      >
         <Label htmlFor="api-key">{m.welcome_key_label()}</Label>
         <Input
           id="api-key"
@@ -80,11 +107,11 @@ export function Onboarding() {
         >
           {m.welcome_get_key()}
         </a>
-        <Button type="submit" className="w-full" disabled={status === 'checking'}>
+        <Button type="submit" size="lg" className="w-full" disabled={status === 'checking'}>
           {status === 'checking' ? m.welcome_checking() : m.welcome_save()}
         </Button>
       </form>
-      <Button variant="ghost" onClick={() => void later()}>
+      <Button variant="ghost" className="relative" onClick={() => void later()}>
         {m.welcome_later()}
       </Button>
     </main>

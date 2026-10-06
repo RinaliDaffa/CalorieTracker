@@ -54,7 +54,7 @@ export function FavoritesSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="max-h-[80dvh] overflow-y-auto rounded-t-2xl"
+        className="max-h-[85dvh] overflow-y-auto"
         onOpenAutoFocus={() => {
           opener.current =
             document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -73,8 +73,8 @@ export function FavoritesSheet({
         </SheetHeader>
         <div className="px-4 pb-6">
           {favorites && favorites.length === 0 ? (
-            <div className="rounded-xl border border-dashed p-6 text-center">
-              <p className="font-semibold">{m.favorites_empty_title()}</p>
+            <div className="rounded-2xl border border-dashed p-8 text-center">
+              <p className="font-display text-lg font-bold">{m.favorites_empty_title()}</p>
               <p className="text-sm text-muted-foreground">{m.favorites_empty_body()}</p>
             </div>
           ) : (
@@ -84,7 +84,7 @@ export function FavoritesSheet({
                 return (
                   <li
                     key={favorite.id}
-                    className="flex items-center gap-3 rounded-xl border bg-card p-3"
+                    className="flex items-center gap-3 rounded-2xl border bg-background p-3"
                   >
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{favorite.name}</p>

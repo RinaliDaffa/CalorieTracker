@@ -68,14 +68,17 @@ function SheetContent({
           side === "top" &&
             "inset-x-0 top-0 h-auto border-b data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top",
           side === "bottom" &&
-            "inset-x-0 bottom-0 h-auto border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
+            "inset-x-0 bottom-0 mx-auto h-auto w-full max-w-xl rounded-t-3xl border-t bg-card pb-[env(safe-area-inset-bottom)] data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom sm:bottom-4 sm:rounded-3xl sm:border",
           className
         )}
         {...props}
       >
+        {side === "bottom" ? (
+          <span aria-hidden="true" className="mx-auto mt-2.5 -mb-2 h-1 w-10 shrink-0 rounded-full bg-border sm:hidden" />
+        ) : null}
         {children}
         {showCloseButton && (
-          <SheetPrimitive.Close className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-secondary">
+          <SheetPrimitive.Close className="absolute top-3 right-3 grid size-9 place-items-center rounded-full bg-secondary text-muted-foreground ring-offset-background transition-colors hover:text-foreground focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none">
             <XIcon className="size-4" />
             <span className="sr-only">{m.close()}</span>
           </SheetPrimitive.Close>
@@ -112,7 +115,7 @@ function SheetTitle({
   return (
     <SheetPrimitive.Title
       data-slot="sheet-title"
-      className={cn("font-semibold text-foreground", className)}
+      className={cn("font-display text-lg font-bold tracking-tight text-foreground", className)}
       {...props}
     />
   )

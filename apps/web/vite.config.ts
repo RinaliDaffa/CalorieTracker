@@ -3,12 +3,42 @@ import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import babel from '@rolldown/plugin-babel';
 import tailwindcss from '@tailwindcss/vite';
 import react, { reactCompilerPreset } from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import pkg from './package.json' with { type: 'json' };
 
+/**
+ * CSS only reveals the fonts once a screen renders, a step after the scripts.
+ * Preloading the two Latin files lets them download alongside the entry chunk.
+ */
+function preloadLatinFonts(): Plugin {
+  return {
+    name: 'nutrisnap:preload-latin-fonts',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(_html, ctx) {
+        return Object.keys(ctx.bundle ?? {})
+          .filter((file) => /-latin-wght-normal-[\w-]+\.woff2$/.test(file))
+          .map((file) => ({
+            tag: 'link',
+            attrs: {
+              rel: 'preload',
+              href: `/${file}`,
+              as: 'font',
+              type: 'font/woff2',
+              crossorigin: '',
+            },
+            injectTo: 'head' as const,
+          }));
+      },
+    },
+  };
+}
+
 export default defineConfig({
   plugins: [
+    preloadLatinFonts(),
     react(),
     babel({ presets: [reactCompilerPreset()] }),
     tailwindcss(),
@@ -45,7 +75,10 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,png,ico,svg,webmanifest}'],
+        globPatterns: [
+          '**/*.{js,css,html,png,ico,svg,webmanifest}',
+          '**/*latin-wght-normal*.woff2',
+        ],
         // The 370 KB source image only feeds the icon generator and a test.
         globIgnores: ['**/icon-source.png'],
         navigateFallback: '/index.html',

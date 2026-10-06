@@ -10,7 +10,7 @@ export function LanguageSection() {
   ];
   return (
     <section aria-labelledby="settings-language" className="space-y-2">
-      <h2 id="settings-language" className="font-semibold">
+      <h2 id="settings-language" className="text-lg font-bold">
         {m.settings_language()}
       </h2>
       <div className="flex gap-2">
