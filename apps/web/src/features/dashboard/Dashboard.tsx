@@ -1,7 +1,7 @@
 import { greetingAt, mealTotals, sumNutrients, toDateKey } from '@nutrisnap/core';
 import { Link } from '@tanstack/react-router';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Camera, MessageCircle } from 'lucide-react';
+import { Camera, MessageCircle, PencilLine, Star } from 'lucide-react';
 import { useState } from 'react';
 import { mealsOn } from '@/db/meals';
 import { db } from '@/db/schema';
@@ -12,6 +12,7 @@ import { formatDateLong } from '@/lib/i18n';
 import { greetingLabel } from '@/lib/labels';
 import { m } from '@/paraglide/messages.js';
 import { CalorieRing } from './CalorieRing';
+import { LazyFavoritesSheet, LazyManualAddSheet } from './LazySheets';
 import { MacroCards } from './MacroCards';
 
 const ACTION =
@@ -22,6 +23,8 @@ export function Dashboard() {
   const meals = useLiveQuery(() => mealsOn(db, today), [today]);
   const targets = useLiveQuery(() => currentTargets(db, today), [today]);
   const [openMeal, setOpenMeal] = useState<string | null>(null);
+  const [manualOpen, setManualOpen] = useState(false);
+  const [favoritesOpen, setFavoritesOpen] = useState(false);
 
   if (!meals || !targets) return null;
   const totals = sumNutrients(meals.map((meal) => mealTotals(meal.items)));
@@ -48,6 +51,18 @@ export function Dashboard() {
               <Camera className="size-5" />
               {m.action_scan()}
             </Link>
+          </li>
+          <li>
+            <button type="button" className={ACTION} onClick={() => setManualOpen(true)}>
+              <PencilLine className="size-5" />
+              {m.action_type()}
+            </button>
+          </li>
+          <li>
+            <button type="button" className={ACTION} onClick={() => setFavoritesOpen(true)}>
+              <Star className="size-5" />
+              {m.action_favorites()}
+            </button>
           </li>
           <li>
             <Link to="/chat" className={ACTION}>
@@ -81,6 +96,8 @@ export function Dashboard() {
       </section>
 
       <LazyMealDetailSheet mealId={openMeal} onClose={() => setOpenMeal(null)} />
+      <LazyManualAddSheet open={manualOpen} onOpenChange={setManualOpen} />
+      <LazyFavoritesSheet open={favoritesOpen} onOpenChange={setFavoritesOpen} />
     </div>
   );
 }
