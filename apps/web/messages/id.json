@@ -103,6 +103,7 @@
   "describe_empty": "Deskripsikan makananmu dulu.",
   "analyze": "Analisis",
   "saved": "Tersimpan",
+  "saved_no_photo": "Tersimpan — fotonya tidak bisa disimpan di perangkat ini.",
   "analysis_check": "Beberapa item mungkin kurang tepat — cek sebentar.",
   "analysis_failed_title": "Tidak bisa dianalisis",
   "retry": "Coba lagi",

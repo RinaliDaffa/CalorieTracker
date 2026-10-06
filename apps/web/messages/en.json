@@ -103,6 +103,7 @@
   "describe_empty": "Describe your meal first.",
   "analyze": "Analyze",
   "saved": "Saved",
+  "saved_no_photo": "Saved — the photo couldn't be kept on this device.",
   "analysis_check": "Some items may be off — worth a quick check.",
   "analysis_failed_title": "Couldn't analyze this",
   "retry": "Try again",
