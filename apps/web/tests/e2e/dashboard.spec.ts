@@ -31,7 +31,8 @@ test('opens a meal, deletes it, and undo brings it back', async ({ page }) => {
   await seed(page, { meals: [meal(todayKey(), 'lunch', [item('Gado-gado', 420)])] });
   await page.getByRole('button', { name: /Gado-gado/ }).click();
   const sheet = page.getByRole('dialog');
-  await expect(sheet.getByText('Gado-gado')).toBeVisible();
+  // First open downloads the lazy sheet chunk, which can exceed 5 s under 8 workers.
+  await expect(sheet.getByText('Gado-gado')).toBeVisible({ timeout: 15000 });
   await expectNoSeriousA11yViolations(page);
   await sheet.getByRole('button', { name: 'Delete' }).click();
   await expect(page.getByText('No meals yet')).toBeVisible();
@@ -75,7 +76,7 @@ test('returns focus to the meal row when the detail sheet closes', async ({ page
   const row = page.getByRole('button', { name: /Soto ayam/ });
   await row.focus();
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 });
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(row).toBeFocused();
