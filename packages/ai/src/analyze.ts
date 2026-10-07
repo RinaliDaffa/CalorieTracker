@@ -99,7 +99,9 @@ export async function checkApiKey(
     const message = extractMessage(await response.json().catch(() => ({})));
     if (isAuthError(response.status, message)) return 'invalid';
     if (isModelUnavailableError(response.status, message)) continue;
-    return response.status >= 500 ? 'unreachable' : 'invalid';
+    // An overloaded model (5xx) says nothing about the key: ask the next one.
+    if (response.status >= 500) continue;
+    return 'invalid';
   }
   return 'unreachable';
 }

@@ -60,13 +60,16 @@ test('the meal type can be changed after saving', async ({ page }) => {
 });
 
 test('a failed analysis keeps the photo and retries', async ({ page }) => {
-  await mockGemini(page, (_body, call) =>
-    call === 0 ? { status: 500, body: { error: { code: 500, message: 'Internal error' } } } : ok(),
+  // Every model fails until the user retries: one overloaded model alone now falls through.
+  let googleDown = true;
+  await mockGemini(page, () =>
+    googleDown ? { status: 500, body: { error: { code: 500, message: 'Internal error' } } } : ok(),
   );
   await takePhoto(page);
   await expect(page.getByRole('alert')).toContainText("Couldn't analyze this");
   await expect(page.getByRole('img', { name: 'Photo of this meal' })).toBeVisible();
   expect(await mealCount(page)).toBe(0);
+  googleDown = false;
   await page.getByRole('button', { name: 'Try again' }).click();
   await expect(page.getByTestId('result-items')).toContainText('Nasi goreng');
 });

@@ -95,6 +95,28 @@ describe('createGeminiClient', () => {
     expect((error as AiError).details.retryAfterMs).toBe(40000);
   });
 
+  test('falls through an overloaded model without remembering the fallback', async () => {
+    const { gemini, calls, onModelResolved } = client([
+      errorReply(503, 'The model is overloaded. Please try again later.'),
+      textReply('ok'),
+    ]);
+    expect(await gemini.generate(contents)).toBe('ok');
+    expect(calls.map((call) => call.url.split('/').at(-1))).toEqual([
+      'm1:generateContent',
+      'm2:generateContent',
+    ]);
+    expect(onModelResolved).not.toHaveBeenCalled();
+  });
+
+  test('reports HTTP only when every model fails on the server side', async () => {
+    const { gemini } = client([
+      errorReply(503, 'overloaded'),
+      errorReply(500, 'internal'),
+      errorReply(503, 'overloaded'),
+    ]);
+    expect(await codeOf(gemini.generate(contents))).toBe('HTTP');
+  });
+
   test('reports an invalid key', async () => {
     const { gemini } = client([errorReply(400, 'API key not valid. Please pass a valid API key.')]);
     expect(await codeOf(gemini.generate(contents))).toBe('INVALID_KEY');

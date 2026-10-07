@@ -117,6 +117,17 @@ export function createGeminiClient(options: ClientOptions): GeminiClient {
           continue;
         }
 
+        // Overloaded or failing on Google's side is about this model right now, not the
+        // request: try the next candidate, but don't remember it as the new default.
+        if (response.status >= 500) {
+          const next = nextModel(model, candidates);
+          if (next) {
+            model = next;
+            persistable = false;
+            continue;
+          }
+        }
+
         throw new AiError('HTTP', message || `HTTP ${response.status}`, {
           status: response.status,
         });

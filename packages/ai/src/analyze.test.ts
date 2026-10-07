@@ -132,10 +132,14 @@ describe('checkApiKey', () => {
     expect(await checkApiKey(fake.transport, 'k', ['old', 'new'])).toBe('valid');
   });
 
-  test('no connection or a server error is unreachable', async () => {
+  test('an overloaded model is skipped, not blamed on the connection', async () => {
+    const fake = fakeTransport([errorReply(503, 'The model is overloaded.'), textReply('ok')]);
+    expect(await checkApiKey(fake.transport, 'k', ['busy', 'next'])).toBe('valid');
+  });
+
+  test('no connection, or every model failing on the server side, is unreachable', async () => {
     expect(await checkApiKey(fakeTransport(['network']).transport, 'k')).toBe('unreachable');
-    expect(await checkApiKey(fakeTransport([errorReply(503, 'down')]).transport, 'k')).toBe(
-      'unreachable',
-    );
+    const allDown = fakeTransport([errorReply(503, 'down'), errorReply(500, 'down')]);
+    expect(await checkApiKey(allDown.transport, 'k', ['a', 'b'])).toBe('unreachable');
   });
 });

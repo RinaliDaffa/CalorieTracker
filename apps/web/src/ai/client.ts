@@ -6,8 +6,17 @@ import { getSetting, setSetting } from '@/db/settings';
 // not an "Analyzing…" spinner that never stops.
 const REQUEST_TIMEOUT_MS = 90_000;
 
+// AbortSignal.timeout is missing before Safari 16 (iOS 15); without this fallback every
+// request there would throw before leaving the phone and read as "can't reach Google".
+function timeoutSignal(ms: number): AbortSignal {
+  if (typeof AbortSignal.timeout === 'function') return AbortSignal.timeout(ms);
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), ms);
+  return controller.signal;
+}
+
 export const fetchTransport: Transport = async (url, init) => {
-  const response = await fetch(url, { ...init, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
+  const response = await fetch(url, { ...init, signal: timeoutSignal(REQUEST_TIMEOUT_MS) });
   return { ok: response.ok, status: response.status, json: () => response.json() };
 };
 
