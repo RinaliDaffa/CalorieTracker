@@ -1,0 +1,178 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+/* Self-hosted: same-origin woff2, precached by the service worker, no third-party request. */
+@import "@fontsource-variable/plus-jakarta-sans";
+@import "@fontsource-variable/bricolage-grotesque";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Light: rice paper and ink. Primary darkens to stay readable as text on cream. */
+:root {
+  --radius: 1rem;
+  --background: #f6f1e9;
+  --foreground: #1d1813;
+  --card: #fffcf7;
+  --card-foreground: #1d1813;
+  --popover: #fffcf7;
+  --popover-foreground: #1d1813;
+  --primary: #a15c00;
+  --primary-foreground: #ffffff;
+  --secondary: #eee6da;
+  --secondary-foreground: #1d1813;
+  --muted: #eee6da;
+  --muted-foreground: #665a4d;
+  --accent: #fbefd6;
+  --accent-foreground: #6b3f00;
+  --destructive: #b42d14;
+  --destructive-solid: #b42d14;
+  --good: #1f7a47;
+  --border: #e2d8c9;
+  --input: #d3c7b6;
+  --ring: #a15c00;
+  --protein: #2f6fd6;
+  --carbs: #7656d8;
+  --fat: #d4562b;
+  --fiber: #3d8a4f;
+  --sugar: #c4447f;
+  --shadow-tone: 30 20 8;
+}
+
+/* Dark (default): warm charcoal with a turmeric accent. */
+.dark {
+  --background: #12100e;
+  --foreground: #f4efe8;
+  --card: #1c1916;
+  --card-foreground: #f4efe8;
+  --popover: #1c1916;
+  --popover-foreground: #f4efe8;
+  --primary: #f4b13e;
+  --primary-foreground: #231603;
+  --secondary: #27231f;
+  --secondary-foreground: #f4efe8;
+  --muted: #27231f;
+  --muted-foreground: #aaa196;
+  --accent: #2b2416;
+  --accent-foreground: #f6d58f;
+  --destructive: #ff8466;
+  --destructive-solid: #c2391d;
+  --good: #6fd39a;
+  --border: #2f2a25;
+  --input: #3b352f;
+  --ring: #f4b13e;
+  --protein: #6aa6ff;
+  --carbs: #b49cff;
+  --fat: #ff8a5c;
+  --fiber: #7cc68a;
+  --sugar: #f07fb2;
+  --shadow-tone: 0 0 0;
+}
+
+@theme inline {
+  --font-sans: "Plus Jakarta Sans Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display:
+    "Bricolage Grotesque Variable", "Plus Jakarta Sans Variable", system-ui, sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-solid: var(--destructive-solid);
+  --color-good: var(--good);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-protein: var(--protein);
+  --color-carbs: var(--carbs);
+  --color-fat: var(--fat);
+  --color-fiber: var(--fiber);
+  --color-sugar: var(--sugar);
+  --radius-sm: calc(var(--radius) - 8px);
+  --radius-md: calc(var(--radius) - 6px);
+  --radius-lg: calc(var(--radius) - 4px);
+  --radius-xl: var(--radius);
+  --radius-2xl: calc(var(--radius) + 4px);
+  --radius-3xl: calc(var(--radius) + 8px);
+  --shadow-card:
+    0 1px 2px rgb(var(--shadow-tone) / 0.06), 0 8px 24px -12px rgb(var(--shadow-tone) / 0.18);
+  --animate-rise: rise 160ms ease-out both;
+  --animate-ring-draw: ring-draw 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  /* Movement only: starting at opacity 0 would hold back first contentful paint. */
+  @keyframes rise {
+    from {
+      transform: translateY(6px);
+    }
+  }
+  @keyframes ring-draw {
+    from {
+      stroke-dashoffset: var(--ring-circumference);
+    }
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    font-feature-settings: "ss01", "cv11";
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display tracking-tight;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@layer components {
+  /* A receipt line: label, dotted leader, value. */
+  .receipt-line {
+    @apply flex items-baseline gap-2;
+  }
+  .receipt-line::after {
+    content: "";
+    order: 1;
+    flex: 1 1 auto;
+    min-width: 1rem;
+    border-bottom: 1.5px dotted var(--border);
+    transform: translateY(-0.25em);
+  }
+  .receipt-line > :last-child {
+    order: 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    /* biome-ignore-start lint/complexity/noImportantStyles: a reduced-motion preference must beat every component's animation utilities */
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+    /* biome-ignore-end lint/complexity/noImportantStyles: end of the reduced-motion override */
+  }
+}

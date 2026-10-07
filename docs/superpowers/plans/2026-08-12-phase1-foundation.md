@@ -78,13 +78,15 @@ Spec §5 places HTML escaping in `ui/render.js`. Because escaping is a pure, sec
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/",
+    "test": "node --test",
     "serve": "npx -y serve . -l 3111"
   }
 }
 ```
 
 `"type": "module"` lets Node load the project's ES modules directly. Browsers ignore this file entirely, so it cannot affect the running app.
+
+`node --test` takes no path argument. Passing a directory (`node --test tests/`) makes Node treat the directory itself as a test file and fail. With no argument it uses its default discovery patterns, which match `**/*.test.js` at any depth and exclude `node_modules` — so `tests/smoke.test.js`, `tests/core/*.test.js` and `tests/config/*.test.js` are all found.
 
 - [ ] **Step 2: Write a smoke test that proves the runner works**
 
@@ -199,7 +201,12 @@ async function cacheFirst(request) {
 async function networkFirst(request) {
   const cache = await caches.open(CACHE_NAME);
   try {
-    const response = await fetch(request);
+    // cache: 'reload' bypasses the browser's own HTTP cache. Without it,
+    // fetch() can be satisfied from disk cache when the host sends a
+    // long max-age (GitHub Pages and Cloudflare Pages both do), which
+    // would reintroduce D1 staleness in production even though the
+    // service-worker strategy is network-first.
+    const response = await fetch(request, { cache: 'reload' });
     if (response && response.ok) cache.put(request, response.clone());
     return response;
   } catch (err) {
@@ -673,6 +680,18 @@ test('clamps healthScore into 1-10', () => {
   bad.healthScore = 99;
   assert.equal(validateAnalysis(bad).value.healthScore, 10);
 });
+
+test('warns when one item of several is dropped, rather than losing it silently', () => {
+  const mixed = validAnalysis();
+  mixed.foodItems.push({
+    name: 'Phantom Item', servingSize: '1',
+    calories: 99999, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0
+  });
+  const result = validateAnalysis(mixed);
+  assert.equal(result.ok, true, 'the still-valid item must still save');
+  assert.equal(result.value.foodItems.length, 1);
+  assert.ok(result.warnings.some(w => w.includes('1 item')));
+});
 ```
 
 - [ ] **Step 2: Run to confirm failure**
@@ -801,6 +820,17 @@ export function validateAnalysis(raw) {
   if (foodItems.length === 0) {
     if (errors.length === 0) errors.push('No usable food items were returned.');
     return { ok: false, errors, warnings };
+  }
+
+  // Some items may have been dropped above (bad name, unreadable macro,
+  // out-of-range calories) while others in the same meal were fine. That
+  // must surface as a warning, not vanish silently - a dropped item is a
+  // silent undercount, which is worse than the mismatch warning below.
+  if (foodItems.length < raw.foodItems.length) {
+    const droppedCount = raw.foodItems.length - foodItems.length;
+    warnings.push(
+      `${droppedCount} item(s) could not be read and were left out of this meal.`
+    );
   }
 
   // Totals are recomputed rather than trusted: the model frequently
@@ -1336,10 +1366,12 @@ Expected: all tests pass, zero failures.
 - [ ] **Step 2: Confirm no secret is tracked**
 
 ```bash
-git grep --cached -l "AQ.Ab8RN6"
+git grep --cached -lE "AQ\.[A-Za-z0-9_-]{20,}"
 ```
 
 Expected: **no output**. Any output is a blocker — stop and remove the file from the index.
+
+This searches for the *structural* pattern of a Gemini API key (the `AQ.` prefix format, followed by a long token) rather than a fragment of any one specific key. An earlier version of this check embedded a 9-character prefix of the user's actual key as the search pattern — itself a small secret leak into a tracked file. Never hardcode a fragment of a real credential into a check meant to detect credentials.
 
 Note the flag order: `--cached` must precede the pattern, or git errors out and a shell fallback can make a failure look like a pass.
 

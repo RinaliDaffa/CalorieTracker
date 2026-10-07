@@ -1,7 +1,7 @@
 # NutriSnap v2 — Design
 
 **Date:** 2026-08-12
-**Status:** Approved for planning
+**Status:** Superseded by `2026-09-28-nutrisnap-v3-master-design.md` (2026-09-28). Phase 1 (§6) was implemented; the rest is replaced by the v3 master design.
 **Author:** Design session with rinali
 
 ---

@@ -1,2 +1,14 @@
 # API key - jangan push ke GitHub!
 js/config.js
+
+# SDD scratch workspace (ledger, briefs, review packages)
+.superpowers/
+
+node_modules/
+dist/
+.turbo/
+apps/web/src/paraglide/
+playwright-report/
+test-results/
+.lighthouseci/
+.playwright-mcp/
