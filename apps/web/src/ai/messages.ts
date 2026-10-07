@@ -1,6 +1,21 @@
 import { AiError } from '@nutrisnap/ai';
 import { m } from '@/paraglide/messages.js';
 
+/**
+ * A short technical line for support screenshots, shown small under the friendly
+ * message. Holds only the error code, HTTP status and Google's error text, which
+ * never echoes the key.
+ */
+export function aiErrorDetail(error: unknown): string {
+  const text =
+    error instanceof AiError
+      ? [error.code, error.details.status, error.message].filter(Boolean).join(' · ')
+      : error instanceof Error
+        ? `${error.name}: ${error.message}`
+        : String(error);
+  return text.length > 160 ? `${text.slice(0, 159)}…` : text;
+}
+
 /** Users see a translated sentence, never the provider's raw error text. */
 export function aiErrorMessage(error: unknown): string {
   if (!(error instanceof AiError)) return m.error_generic();

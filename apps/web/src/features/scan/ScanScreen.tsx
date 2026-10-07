@@ -4,7 +4,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { Camera, ImagePlus, Loader2, RotateCcw } from 'lucide-react';
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react';
 import { gemini } from '@/ai/client';
-import { aiErrorMessage } from '@/ai/messages';
+import { aiErrorDetail, aiErrorMessage } from '@/ai/messages';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -43,6 +43,7 @@ export function ScanScreen() {
   const [photo, setPhoto] = useState<CapturedPhoto | null>(null);
   const [mealId, setMealId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [lastRequest, setLastRequest] = useState<Request | null>(null);
   const [description, setDescription] = useState('');
   const previewUrl = useObjectUrl(photo?.blob);
@@ -77,6 +78,7 @@ export function ScanScreen() {
     setPhoto(null);
     setMealId(null);
     setError(null);
+    setErrorDetail(null);
   }
 
   async function finish(outcome: AnalysisOutcome, request: Request) {
@@ -107,6 +109,7 @@ export function ScanScreen() {
   async function run(request: Request) {
     setLastRequest(request);
     setError(null);
+    setErrorDetail(null);
     setMode('analyzing');
     try {
       const outcome =
@@ -116,6 +119,7 @@ export function ScanScreen() {
       await finish(outcome, request);
     } catch (e) {
       setError(aiErrorMessage(e));
+      setErrorDetail(aiErrorDetail(e));
       setMode('failed');
     }
   }
@@ -264,6 +268,11 @@ export function ScanScreen() {
         >
           <p className="font-semibold">{m.analysis_failed_title()}</p>
           <p className="mt-1">{error}</p>
+          {errorDetail ? (
+            <p className="mt-2 font-mono text-[11px] break-words text-muted-foreground">
+              {m.error_details({ detail: errorDetail })}
+            </p>
+          ) : null}
           <div className="mt-3 flex gap-2">
             <Button
               size="sm"

@@ -59,6 +59,7 @@
   "error_unreadable": "The AI's answer couldn't be read. Try again.",
   "error_implausible": "The result looked wrong, so it wasn't saved. Try again or describe the meal.",
   "error_generic": "Something went wrong. Try again.",
+  "error_details": "Details: {detail}",
 
   "greeting_morning": "Good morning",
   "greeting_afternoon": "Good afternoon",

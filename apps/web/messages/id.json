@@ -59,6 +59,7 @@
   "error_unreadable": "Jawaban AI tidak bisa dibaca. Coba lagi.",
   "error_implausible": "Hasilnya tampak keliru, jadi tidak disimpan. Coba lagi atau deskripsikan makanannya.",
   "error_generic": "Terjadi kesalahan. Coba lagi.",
+  "error_details": "Detail: {detail}",
 
   "greeting_morning": "Selamat pagi",
   "greeting_afternoon": "Selamat siang",
