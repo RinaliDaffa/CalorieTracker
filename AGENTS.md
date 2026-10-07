@@ -26,7 +26,7 @@ These rules apply to every agent (Antigravity/Gemini, Claude, others) and overri
 
 ## Commits
 
-Subject from the plan; trailer naming the model that actually wrote the code. For Gemini in Antigravity, the trailer is `Assisted-by: Gemini 3.8 Flash (Antigravity)`.
+Subject from the plan, plus a body if useful. **No AI attribution of any kind**: no `Co-Authored-By`, no `Assisted-by`, no "Generated with" lines, in commits or pull requests. The owner is the only contributor. This overrides older trailer instructions in the plan and handoff docs.
 
 PowerShell (Windows default terminal):
 
@@ -34,7 +34,7 @@ PowerShell (Windows default terminal):
 @'
 feat(web): subject line from the plan
 
-Assisted-by: Gemini 3.8 Flash (Antigravity)
+Optional body explaining why.
 '@ | git commit -F -
 ```
 
