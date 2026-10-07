@@ -40,6 +40,9 @@ function requestBody(contents: GeminiContent[], config: GenerateConfig): string 
     generationConfig.responseMimeType = 'application/json';
     generationConfig.responseSchema = config.responseSchema;
   }
+  if (config.thinkingBudget !== undefined) {
+    generationConfig.thinkingConfig = { thinkingBudget: config.thinkingBudget };
+  }
   return JSON.stringify({ contents, generationConfig });
 }
 
@@ -69,14 +72,18 @@ export function createGeminiClient(options: ClientOptions): GeminiClient {
 
       while (model) {
         let response: TransportResponse;
+        const started = Date.now();
         try {
           response = await options.transport(`${GEMINI_BASE}/${model}:generateContent`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
             body,
           });
-        } catch {
-          throw new AiError('NETWORK', 'Network request failed.');
+        } catch (cause) {
+          // The cause and the wait tell a dropped connection from a timeout in a support screenshot.
+          const name = cause instanceof Error ? cause.name : 'Error';
+          const seconds = Math.round((Date.now() - started) / 1000);
+          throw new AiError('NETWORK', `Network request failed (${name} after ${seconds}s)`);
         }
 
         if (response.ok) {

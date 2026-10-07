@@ -104,6 +104,8 @@ describe('analyzePhoto and analyzeText', () => {
     const body = calls[0]?.body as { generationConfig: Record<string, unknown> };
     expect(body.generationConfig.responseMimeType).toBe('application/json');
     expect(body.generationConfig.responseSchema).toBeTruthy();
+    // Bounded thinking keeps a photo answer well inside mobile Safari's patience.
+    expect(body.generationConfig.thinkingConfig).toEqual({ thinkingBudget: 1024 });
   });
 
   test('analyzeText returns the parsed analysis', async () => {

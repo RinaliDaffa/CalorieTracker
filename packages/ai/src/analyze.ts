@@ -34,8 +34,14 @@ export function parseAnalysisText(text: string): AnalysisOutcome {
 }
 
 // Thinking models spend output tokens before answering; a small ceiling can
-// return an empty answer on a large meal.
-const ANALYSIS_CONFIG = { responseSchema: ANALYSIS_SCHEMA, maxOutputTokens: 8192 };
+// return an empty answer on a large meal. Unbounded thinking on a photo can
+// also outlast mobile Safari, which drops a request that stays silent for about
+// a minute, so the budget is capped well below the output ceiling.
+const ANALYSIS_CONFIG = {
+  responseSchema: ANALYSIS_SCHEMA,
+  maxOutputTokens: 8192,
+  thinkingBudget: 1024,
+};
 
 export async function analyzePhoto(
   client: GeminiClient,

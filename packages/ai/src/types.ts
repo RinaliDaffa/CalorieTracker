@@ -22,6 +22,8 @@ export interface GenerateConfig {
   temperature?: number;
   maxOutputTokens?: number;
   responseSchema?: unknown;
+  /** Caps the model's hidden reasoning; accepted by Gemini 2.5 and 3 models. */
+  thinkingBudget?: number;
 }
 
 export interface GeminiClient {

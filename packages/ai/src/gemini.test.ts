@@ -129,6 +129,13 @@ describe('createGeminiClient', () => {
     expect(fake.calls).toHaveLength(0);
   });
 
+  test('a failed fetch keeps its cause and the wait in the message, for support details', async () => {
+    const { gemini } = client(['network']);
+    const error = await gemini.generate(contents).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(AiError);
+    expect((error as AiError).message).toMatch(/^Network request failed \(TypeError after \d+s\)$/);
+  });
+
   test('maps a failed fetch to NETWORK and an empty answer to EMPTY_RESPONSE', async () => {
     expect(await codeOf(client(['network']).gemini.generate(contents))).toBe('NETWORK');
     expect(await codeOf(client([textReply('  ')]).gemini.generate(contents))).toBe(
