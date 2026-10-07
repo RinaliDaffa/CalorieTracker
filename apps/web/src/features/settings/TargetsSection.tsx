@@ -15,6 +15,7 @@ import { db } from '@/db/schema';
 import { currentTargets, setTargets } from '@/db/targets';
 import { nutrientLabel } from '@/lib/labels';
 import { toast } from '@/lib/toast';
+import { useToday } from '@/lib/use-today';
 import { m } from '@/paraglide/messages.js';
 
 function TargetsForm({ initial }: { initial: Targets }) {
@@ -80,7 +81,7 @@ function TargetsForm({ initial }: { initial: Targets }) {
 }
 
 export function TargetsSection() {
-  const today = toDateKey(new Date());
+  const today = useToday();
   const targets = useLiveQuery(() => currentTargets(db, today), [today]);
   return (
     <section aria-labelledby="settings-targets" className="space-y-2">

@@ -17,6 +17,7 @@ import { LazyMealDetailSheet } from '@/features/common/LazyMealDetailSheet';
 import { MealList } from '@/features/common/MealList';
 import { formatDateLong, formatNumber } from '@/lib/i18n';
 import { nutrientLabel } from '@/lib/labels';
+import { useToday } from '@/lib/use-today';
 import { m } from '@/paraglide/messages.js';
 import { MonthCalendar } from './MonthCalendar';
 import { WeeklyChart } from './WeeklyChart';
@@ -24,7 +25,7 @@ import { WeeklyChart } from './WeeklyChart';
 export function History() {
   const navigate = useNavigate();
   const search = useSearch({ strict: false }) as { date?: string };
-  const today = toDateKey(new Date());
+  const today = useToday();
   const selected = search.date ?? today;
   const selectedDate = parseDateKey(selected);
   const [view, setView] = useState({

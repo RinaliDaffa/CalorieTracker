@@ -1,7 +1,7 @@
 import { progressPercent } from '@nutrisnap/core';
+import { clsx as cx } from 'clsx';
 import type { CSSProperties } from 'react';
 import { formatNumber } from '@/lib/i18n';
-import { cn } from '@/lib/utils';
 import { m } from '@/paraglide/messages.js';
 
 const RADIUS = 52;
@@ -17,7 +17,7 @@ export function CalorieRing({ eaten, target }: { eaten: number; target: number }
     <section className="relative overflow-hidden rounded-3xl border bg-card p-5 shadow-card sm:p-6">
       <div
         aria-hidden="true"
-        className={cn(
+        className={cx(
           'pointer-events-none absolute -top-24 -right-20 size-64 rounded-full blur-3xl',
           isOver ? 'bg-destructive/15' : 'bg-primary/15',
         )}
@@ -44,7 +44,7 @@ export function CalorieRing({ eaten, target }: { eaten: number; target: number }
               fill="none"
               strokeWidth="11"
               strokeLinecap="round"
-              className={cn(
+              className={cx(
                 'animate-ring-draw transition-[stroke-dashoffset] duration-700',
                 isOver ? 'stroke-destructive' : 'stroke-primary',
               )}
@@ -62,7 +62,7 @@ export function CalorieRing({ eaten, target }: { eaten: number; target: number }
         </div>
         <div className="min-w-0 space-y-1.5">
           <p
-            className={cn(
+            className={cx(
               'font-display text-2xl leading-tight font-bold tracking-tight text-balance sm:text-3xl',
               isOver && 'text-destructive',
             )}

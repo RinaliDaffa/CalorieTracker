@@ -1,4 +1,4 @@
-import { greetingAt, mealTotals, sumNutrients, toDateKey } from '@nutrisnap/core';
+import { greetingAt, mealTotals, sumNutrients } from '@nutrisnap/core';
 import { Link } from '@tanstack/react-router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Camera, MessageCircle, PencilLine, Star } from 'lucide-react';
@@ -11,18 +11,24 @@ import { LazyMealDetailSheet } from '@/features/common/LazyMealDetailSheet';
 import { MealList } from '@/features/common/MealList';
 import { formatDateLong } from '@/lib/i18n';
 import { greetingLabel } from '@/lib/labels';
-import { cn } from '@/lib/utils';
+import { useToday } from '@/lib/use-today';
 import { m } from '@/paraglide/messages.js';
 import { CalorieRing } from './CalorieRing';
 import { LazyFavoritesSheet, LazyManualAddSheet } from './LazySheets';
 import { MacroCards } from './MacroCards';
 
-const ACTION =
-  'flex h-full w-full flex-col items-center justify-center gap-1.5 rounded-2xl border bg-card px-1 py-3 text-center text-xs leading-tight font-semibold shadow-card transition-[transform,background-color] hover:bg-muted active:scale-[0.97] sm:text-sm';
-const ICON = 'grid size-9 place-items-center rounded-full bg-muted text-foreground';
+// Complete, non-overlapping class sets: this screen joins classes without tailwind-merge
+// (it would add ~8 KB to the first screen), so a variant must never override a base class.
+const TILE =
+  'flex h-full w-full flex-col items-center justify-center gap-1.5 rounded-2xl border px-1 py-3 text-center text-xs leading-tight font-semibold shadow-card transition-[transform,background-color] active:scale-[0.97] sm:text-sm';
+const ACTION = `${TILE} bg-card hover:bg-muted`;
+const ACTION_PRIMARY = `${TILE} border-primary bg-primary text-primary-foreground hover:bg-primary/90`;
+const DISC = 'grid size-9 place-items-center rounded-full';
+const ICON = `${DISC} bg-muted text-foreground`;
+const ICON_PRIMARY = `${DISC} bg-primary-foreground/15 text-primary-foreground`;
 
 export function Dashboard() {
-  const today = toDateKey(new Date());
+  const today = useToday();
   const meals = useLiveQuery(() => mealsOn(db, today), [today]);
   const targets = useLiveQuery(() => currentTargets(db, today), [today]);
   const [openMeal, setOpenMeal] = useState<string | null>(null);
@@ -55,14 +61,8 @@ export function Dashboard() {
         </h2>
         <ul className="grid grid-cols-4 gap-2.5 sm:gap-3" data-testid="quick-actions">
           <li>
-            <Link
-              to="/scan"
-              className={cn(
-                ACTION,
-                'border-primary bg-primary text-primary-foreground hover:bg-primary/90',
-              )}
-            >
-              <span className={cn(ICON, 'bg-primary-foreground/15 text-primary-foreground')}>
+            <Link to="/scan" className={ACTION_PRIMARY}>
+              <span className={ICON_PRIMARY}>
                 <Camera className="size-5" />
               </span>
               {m.action_scan()}

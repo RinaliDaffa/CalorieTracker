@@ -11,6 +11,7 @@ import { isOnboarded } from '@/db/settings';
 import { Dashboard } from '@/features/dashboard/Dashboard';
 import { AppShell } from '@/shell/AppShell';
 import { RootLayout } from '@/shell/RootLayout';
+import { NotFound, RouteError } from '@/shell/RouteFallbacks';
 
 const rootRoute = createRootRoute({ component: RootLayout });
 
@@ -66,7 +67,12 @@ const routeTree = rootRoute.addChildren([
   appRoute.addChildren([dashboardRoute, scanRoute, historyRoute, chatRoute, settingsRoute]),
 ]);
 
-export const router = createRouter({ routeTree, defaultPreload: 'intent' });
+export const router = createRouter({
+  routeTree,
+  defaultPreload: 'intent',
+  defaultNotFoundComponent: NotFound,
+  defaultErrorComponent: RouteError,
+});
 
 declare module '@tanstack/react-router' {
   interface Register {

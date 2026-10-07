@@ -2,7 +2,6 @@ import { Link, Outlet } from '@tanstack/react-router';
 import { CalendarDays, Camera, Home, MessageCircle, Settings } from 'lucide-react';
 import type { ComponentType } from 'react';
 import { BrandMark } from '@/features/common/BrandMark';
-import { cn } from '@/lib/utils';
 import { m } from '@/paraglide/messages.js';
 
 interface NavItem {
@@ -19,6 +18,15 @@ const NAV: NavItem[] = [
   { to: '/chat', label: () => m.nav_chat(), icon: MessageCircle },
   { to: '/settings', label: () => m.nav_settings(), icon: Settings },
 ];
+
+// Classes are joined without tailwind-merge (it would add ~8 KB to the first screen),
+// so states are scoped with variants instead of overriding one another: the router
+// appends activeProps without merging, and the phone-only pill styles use max-lg.
+const LINK =
+  'group flex flex-col items-center gap-1 pt-2 pb-1.5 text-[11px] font-medium transition-colors not-[.is-active]:text-muted-foreground hover:text-foreground lg:flex-row lg:gap-3 lg:rounded-xl lg:px-3 lg:py-2.5 lg:text-sm';
+const PILL_BASE = 'grid place-items-center rounded-full transition-colors';
+const PILL = `${PILL_BASE} max-lg:h-8 max-lg:w-14 max-lg:group-[.is-active]:bg-accent max-lg:group-[.is-active]:text-accent-foreground`;
+const PILL_PRIMARY = `${PILL_BASE} max-lg:-mt-6 max-lg:size-14 max-lg:bg-primary max-lg:text-primary-foreground max-lg:shadow-[0_8px_20px_-6px] max-lg:shadow-primary/60 max-lg:ring-4 max-lg:ring-background`;
 
 export function AppShell() {
   return (
@@ -43,17 +51,11 @@ export function AppShell() {
               <Link
                 to={item.to}
                 activeOptions={{ exact: item.to === '/' }}
-                className="group flex flex-col items-center gap-1 pt-2 pb-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground lg:flex-row lg:gap-3 lg:rounded-xl lg:px-3 lg:py-2.5 lg:text-sm"
+                className={LINK}
                 activeProps={{ className: 'is-active text-foreground lg:bg-accent' }}
               >
-                <span
-                  className={cn(
-                    'grid h-8 w-14 place-items-center rounded-full transition-colors group-[.is-active]:bg-accent group-[.is-active]:text-accent-foreground lg:size-auto lg:bg-transparent lg:group-[.is-active]:bg-transparent',
-                    item.primary &&
-                      '-mt-6 size-14 bg-primary text-primary-foreground shadow-[0_8px_20px_-6px] shadow-primary/60 ring-4 ring-background group-[.is-active]:bg-primary group-[.is-active]:text-primary-foreground lg:mt-0 lg:size-auto lg:bg-transparent lg:text-inherit lg:shadow-none lg:ring-0 lg:group-[.is-active]:bg-transparent lg:group-[.is-active]:text-accent-foreground',
-                  )}
-                >
-                  <item.icon className={cn('size-5', item.primary && 'size-6 lg:size-5')} />
+                <span className={item.primary ? PILL_PRIMARY : PILL}>
+                  <item.icon className={item.primary ? 'size-5 max-lg:size-6' : 'size-5'} />
                 </span>
                 <span>{item.label()}</span>
               </Link>

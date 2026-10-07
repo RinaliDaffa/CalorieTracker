@@ -1,9 +1,9 @@
-import { cn } from '@/lib/utils';
+import { clsx as cx } from 'clsx';
 
 /** A plate with a bite taken out — inline so the shell needs no image request. */
 export function BrandMark({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 32 32" aria-hidden="true" className={cn('size-8 shrink-0', className)}>
+    <svg viewBox="0 0 32 32" aria-hidden="true" className={cx('shrink-0', className ?? 'size-8')}>
       <defs>
         <mask id="brand-bite">
           <rect width="32" height="32" fill="white" />

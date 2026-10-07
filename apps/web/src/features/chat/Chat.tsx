@@ -42,8 +42,9 @@ export function Chat() {
     sending.current = true;
     setText('');
     setWaiting(true);
-    await addChat(db, 'user', message);
     try {
+      // Inside the try: a failed write must release the composer, not leave it stuck.
+      await addChat(db, 'user', message);
       const reply = await chatReply(
         gemini,
         message,

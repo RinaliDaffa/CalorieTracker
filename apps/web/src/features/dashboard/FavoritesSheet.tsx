@@ -26,21 +26,32 @@ export function FavoritesSheet({
 }) {
   const favorites = useLiveQuery(() => listFavorites(db), []);
   const opener = useRef<HTMLElement | null>(null);
+  // A ref, not state: a double tap during the close animation must log one meal.
+  const logging = useRef(false);
 
   async function log(favorite: FavoriteRecord) {
-    const now = new Date();
-    const meal = await addMeal(db, {
-      date: toDateKey(now),
-      time: now.getTime(),
-      mealType: mealTypeAt(now),
-      source: 'favorite',
-      items: favorite.items,
-      note: favorite.name,
-    });
-    onOpenChange(false);
-    toast.success(m.favorite_added(), {
-      action: { label: m.undo(), onClick: () => void softDeleteMeal(db, meal.id) },
-    });
+    if (logging.current) return;
+    logging.current = true;
+    try {
+      const now = new Date();
+      const meal = await addMeal(db, {
+        date: toDateKey(now),
+        time: now.getTime(),
+        mealType: mealTypeAt(now),
+        source: 'favorite',
+        items: favorite.items,
+        note: favorite.name,
+      });
+      onOpenChange(false);
+      toast.success(m.favorite_added(), {
+        action: { label: m.undo(), onClick: () => void softDeleteMeal(db, meal.id) },
+      });
+    } finally {
+      // Released once the sheet has finished closing, so the second tap of a double tap is ignored.
+      setTimeout(() => {
+        logging.current = false;
+      }, 400);
+    }
   }
 
   async function remove(favorite: FavoriteRecord) {

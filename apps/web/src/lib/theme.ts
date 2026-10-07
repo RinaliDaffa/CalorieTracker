@@ -17,7 +17,7 @@ export function applyTheme(pref: ThemePref): void {
   document.documentElement.classList.toggle('dark', dark);
   document
     .querySelector('meta[name="theme-color"]')
-    ?.setAttribute('content', dark ? '#0a0e17' : '#f7f8fa');
+    ?.setAttribute('content', dark ? '#12100e' : '#f6f1e9');
   window.dispatchEvent(new Event(CHANGE_EVENT));
 }
 

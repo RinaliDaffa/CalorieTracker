@@ -1,151 +1,37 @@
-# 🥗 NutriSnap — Free AI Calorie Tracker
+# NutriSnap
 
-A completely free, AI-powered calorie tracker that runs as a Progressive Web App (PWA) on your iPhone. Take a photo of your food and get instant nutrition analysis powered by Google Gemini AI.
+Snap your meal, see the calories. A free, installable calorie tracker that works on iPhone, Android and desktop, in Indonesian and English. Your data stays on your device.
 
-## ✨ Features
+- **Scan, type or pick a favorite.** Every result is saved at once and reads like a receipt: items, portions, a total. Undo is one tap.
+- **Know what's left today.** The dashboard leads with the calories remaining, then protein, carbs and fat.
+- **History and a coach.** A month calendar, a weekly chart, and an AI chat that knows today's meals.
+- **Private and offline.** Meals live in your browser's storage. The app opens without a connection. Your Gemini key is sent only to Google, in a request header.
+- **Free.** It runs on your own free Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey). Everything except AI analysis works without one.
 
-- 📸 **AI Food Scanner** — Take/upload food photos for instant nutrition breakdown
-- 📊 **Daily Dashboard** — Track calories, protein, carbs, fat with animated progress rings
-- 🍽️ **Meal Logging** — Organized by breakfast, lunch, dinner, snacks
-- 💬 **AI Chat** — Personal nutrition assistant that knows your diet
-- 📅 **History & Calendar** — Browse past days, see weekly trends
-- 🎯 **Goal Setting** — Customizable daily calorie & macro targets
-- ⭐ **Favorites** — Save frequent meals for one-tap logging
-- ✏️ **Manual Entry** — Add meals by description when you don't have a photo
-- 🖼️ **Meal Photos** — The photo you scanned is kept and shown in meal detail
-- 📤 **CSV Export** — Download your full meal history
-- 🌙 **Dark & Light Mode** — Beautiful premium design
-- 📱 **PWA** — Installable on iPhone, works offline
+## Use it
 
-## 🚀 Quick Start
+Open the site, add your free Gemini API key (or tap "Later"), and install it: on iPhone, Safari → Share → Add to Home Screen; on Android or desktop, "Install app" in Chrome.
 
-### 1. Get a Free API Key
+## Develop
 
-1. Go to [Google AI Studio](https://aistudio.google.com/)
-2. Sign in with your Google account (no credit card needed)
-3. Click **"Get API Key"** → **"Create API Key"**
-4. Copy the key
-
-### 2. Run the App
+Requires Node 24 and pnpm 11.
 
 ```bash
-cd CalorieTracker
-npm run serve
+pnpm install
+pnpm --filter @nutrisnap/web dev      # http://localhost:5173
+pnpm test                             # unit tests (all packages)
+pnpm e2e                              # Playwright: Chromium, WebKit, Firefox × phone and desktop
+pnpm lint && pnpm typecheck
+pnpm --filter @nutrisnap/web build && pnpm --filter @nutrisnap/web budget   # initial JS ≤ 150 KB gzip
+pnpm --filter @nutrisnap/web lhci     # Lighthouse: performance ≥ 0.90, accessibility ≥ 0.95
 ```
 
-Then open `http://localhost:3111` in your browser.
+## Layout
 
-**Always use this command, not a bare `npx serve .`.** Browser storage is
-per-origin, and `localhost:3000` and `localhost:3111` are different origins
-with separate databases. Serving on a different port than last time looks
-exactly like the app forgetting your key and your meals — they are still
-there, just under the other address.
+- `packages/core`: pure nutrition, date and target logic (unit-tested)
+- `packages/ai`: Gemini prompts, response schema and the model-fallback client
+- `packages/platform`: camera, image, file and storage adapters
+- `apps/web`: the React 19 PWA (Vite, TanStack Router, Dexie, Paraglide, Tailwind, Radix)
+- `legacy/`: the previous plain-JavaScript app, kept only until existing data has moved to the new one (`pnpm legacy:serve`, then Settings → "Export JSON"; import it in the new app's Settings)
 
-### 3. Enter Your API Key — once
-
-Paste your Gemini API key and click "Get Started". It is stored on the device
-and read back on every launch; you should never be asked for it twice on the
-same address.
-
-If you *are* asked again, one of two things happened: you opened the app on a
-different origin (see above), or the browser reclaimed the storage. Settings →
-Storage Used shows whether the browser has promised to keep it — installing to
-the Home Screen is what earns that promise on iOS.
-
-## 📱 Install on iPhone
-
-1. Open the app URL in **Safari** (not Chrome!)
-2. Tap the **Share** button (square with upward arrow ↑)
-3. Scroll down and tap **"Add to Home Screen"**
-4. Tap **"Add"** in the top right
-5. The app icon appears on your home screen — tap to launch fullscreen!
-
-## 🌐 Deploy for Free
-
-To access from your iPhone, you need the app hosted over HTTPS. Here are free options:
-
-### GitHub Pages (Recommended)
-
-1. Push this folder to a GitHub repository
-2. Go to Settings → Pages
-3. Set source to "Deploy from branch" → `main` → `/ (root)`
-4. Your app will be at `https://yourusername.github.io/CalorieTracker/`
-
-### Netlify
-
-1. Go to [netlify.com](https://www.netlify.com/) and sign up free
-2. Drag-and-drop the `CalorieTracker` folder to deploy
-3. Get your free `.netlify.app` URL
-
-### Cloudflare Pages
-
-1. Connect your GitHub repo at [pages.cloudflare.com](https://pages.cloudflare.com/)
-2. Auto-deploys on every push
-
-## 🏗️ Project Structure
-
-```
-CalorieTracker/
-├── index.html          # App shell (single-page app)
-├── manifest.json       # PWA manifest
-├── sw.js               # Service worker (offline support)
-├── css/
-│   ├── index.css       # Design system & variables
-│   ├── components.css  # UI component styles
-│   └── animations.css  # Micro-animations
-├── js/
-│   ├── app.js          # Main controller & routing
-│   ├── gemini.js       # Gemini AI API integration
-│   ├── db.js           # IndexedDB persistence
-│   ├── camera.js       # Camera & image handling
-│   ├── charts.js       # Canvas progress rings & charts
-│   ├── ui.js           # UI rendering
-│   ├── utils.js        # Helpers & constants
-│   ├── core/           # Pure logic — no DOM, no network, unit-tested
-│   │   ├── escape.js       # HTML escaping & chat markdown
-│   │   └── nutrition.js    # Validates & clamps model output
-│   └── config/
-│       └── models.js       # Model candidates & fallback selection
-├── tests/              # node --test, zero dependencies
-├── icons/
-│   ├── icon-192.png
-│   └── icon-512.png
-├── package.json        # Scripts only — no runtime dependencies
-└── README.md
-```
-
-Anything under `js/core/` is pure: it never touches `document`, `window`,
-`indexedDB` or `fetch`, so it runs under the Node test runner. Browser modules
-import from `core/`; `core/` never imports back.
-
-## 🧪 Development
-
-```bash
-npm test        # runs every tests/**/*.test.js — no install step needed
-npm run serve   # serves the app on http://localhost:3111
-```
-
-There is no build step and no runtime dependency. Editing a file and reloading
-is the whole loop.
-
-**When you deploy a change, bump `VERSION` in `sw.js`.** That string names the
-cache, and changing it is what evicts the previous one on installed devices.
-
-## 💡 Tips
-
-- **Best accuracy**: Take clear, well-lit photos of your food
-- **Multiple items**: The AI can identify multiple food items in one photo
-- **Ask the AI**: Use the chat to ask questions like "Am I getting enough protein today?"
-- **Favorites**: Save meals you eat often — add them with one tap next time
-- **Offline**: The app works offline for viewing your history and dashboard
-
-## 🔒 Privacy
-
-- All your data stays on your device (IndexedDB)
-- No server, no database, no tracking
-- Your API key is stored locally and only sent to Google's API
-- On the free tier, Google may use API inputs to improve their products
-
-## 📄 License
-
-MIT — Free to use, modify, and share.
+Design: `docs/superpowers/specs/`. Plans: `docs/superpowers/plans/`.

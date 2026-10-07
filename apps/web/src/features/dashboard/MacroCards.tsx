@@ -1,7 +1,7 @@
 import { type Nutrients, progressPercent } from '@nutrisnap/core';
+import { clsx as cx } from 'clsx';
 import { formatNumber } from '@/lib/i18n';
 import { nutrientLabel } from '@/lib/labels';
-import { cn } from '@/lib/utils';
 import { m } from '@/paraglide/messages.js';
 
 type MacroKey = 'protein' | 'carbs' | 'fat' | 'fiber' | 'sugar';
@@ -25,7 +25,7 @@ function Meter({ name, percent }: { name: MacroKey; percent: number }) {
       className="h-1.5 overflow-hidden rounded-full bg-muted"
     >
       <div
-        className={cn('h-full rounded-full transition-[width] duration-700', BAR[name])}
+        className={cx('h-full rounded-full transition-[width] duration-700', BAR[name])}
         style={{ width: `${percent}%` }}
       />
     </div>
@@ -41,7 +41,7 @@ export function MacroCards({ totals, targets }: { totals: Nutrients; targets: Nu
         {(['protein', 'carbs', 'fat'] as const).map((key) => (
           <li key={key} className="space-y-2 rounded-2xl border bg-card p-3 shadow-card sm:p-4">
             <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-              <span aria-hidden="true" className={cn('size-2 rounded-full', BAR[key])} />
+              <span aria-hidden="true" className={cx('size-2 rounded-full', BAR[key])} />
               {nutrientLabel(key)}
             </p>
             <p className="font-display text-xl font-bold tabular-nums sm:text-2xl">
