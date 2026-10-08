@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="OAuth spike" />
+    <title>OAuth spike</title>
+    <style>
+      body { font: 17px system-ui; padding: 24px; background: #12100e; color: #f4efe8; }
+      button { font: inherit; padding: 12px 20px; border-radius: 12px; border: 0; background: #f4b13e; color: #231603; }
+      td { padding: 6px 8px; border-bottom: 1px solid #3b352f; }
+    </style>
+  </head>
+  <body>
+    <h1>iOS sign-in spike</h1>
+    <table><tbody id="out"></tbody></table>
+    <p><button id="go" type="button">Start Google sign-in</button></p>
+    <script>
+      const CLIENT_ID = '1089821192980-ajmqc65jis3ijg5v6fju1n0b47dm2d39.apps.googleusercontent.com';
+      const standalone =
+        navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
+      const out = document.getElementById('out');
+      function row(label, value) {
+        const tr = document.createElement('tr');
+        const a = document.createElement('td');
+        const b = document.createElement('td');
+        a.textContent = label;
+        b.textContent = value;
+        b.style.fontWeight = '700';
+        tr.append(a, b);
+        out.append(tr);
+      }
+      row('Running as installed app now', standalone ? 'YES' : 'no');
+      const params = new URLSearchParams(location.search);
+      if (params.has('code') || params.has('error')) {
+        const state = params.get('state');
+        row('Google returned a code', params.has('code') ? 'YES' : 'NO (' + params.get('error') + ')');
+        row('State survived in localStorage', localStorage.getItem('spike-state') === state ? 'YES' : 'no');
+        row('State survived in sessionStorage', sessionStorage.getItem('spike-state') === state ? 'YES' : 'no');
+        row('Sign-in was started from installed app', localStorage.getItem('spike-started') || '?');
+        history.replaceState(null, '', location.pathname);
+      }
+      document.getElementById('go').addEventListener('click', () => {
+        const state = crypto.randomUUID();
+        localStorage.setItem('spike-state', state);
+        sessionStorage.setItem('spike-state', state);
+        localStorage.setItem('spike-started', standalone ? 'YES' : 'no');
+        const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+        url.search = new URLSearchParams({
+          client_id: CLIENT_ID,
+          redirect_uri: location.origin + location.pathname,
+          response_type: 'code',
+          scope: 'openid email https://www.googleapis.com/auth/drive.appdata',
+          state,
+          access_type: 'offline',
+          prompt: 'consent',
+        }).toString();
+        location.assign(url.toString());
+      });
+    </script>
+  </body>
+</html>
